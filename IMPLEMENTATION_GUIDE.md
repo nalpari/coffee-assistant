@@ -67,50 +67,121 @@ pnpm dlx shadcn@latest add card dialog badge input sheet
 ```typescript
 /**
  * 메뉴 카테고리 타입
+ * DB: category 테이블의 id와 매핑
+ * 실제 DB: 1=COFFEE, 2=NON-COFFEE, 3=SIGNATURE, 4=SMOOTHIE & FRAPPE, 5=ADE & TEA, 6=COLD BREW
  */
-export type Category = 'coffee' | 'dessert' | 'beverage' | 'food';
+export type CategoryId = 1 | 2 | 3 | 4 | 5 | 6;
+export type CategoryName = 'COFFEE' | 'NON-COFFEE' | 'SIGNATURE' | 'SMOOTHIE & FRAPPE' | 'ADE & TEA' | 'COLD BREW';
+
+/**
+ * 공통 엔티티 필드 (감사 추적용)
+ */
+export interface BaseEntity {
+  createdBy: string;       // 생성자 (varchar(255))
+  createdDate: Date;       // 생성일시 (timestamp)
+  updatedBy?: string;      // 수정자 (varchar(255), nullable)
+  updatedDate?: Date;      // 수정일시 (timestamp, nullable)
+}
 
 /**
  * 메뉴 아이템 인터페이스
+ * DB 테이블: menu
  */
-export interface MenuItem {
-  id: string;              // 고유 식별자
-  name: string;            // 메뉴 이름 (한글)
-  description: string;     // 상세 설명
-  price: number;           // 가격 (원)
-  image: string;           // 이미지 URL (Unsplash)
-  category: Category;      // 카테고리
-  tags: string[];          // 태그 배열 (예: ["인기", "신메뉴"])
-  available: boolean;      // 재고 여부
-  popular?: boolean;       // 인기 메뉴 여부 (옵션)
+export interface MenuItem extends BaseEntity {
+  id: number;              // 고유 식별자 (bigint, auto increment)
+  name: string;            // 메뉴 이름 (varchar(255))
+  description: string;     // 상세 설명 (varchar(500))
+  price: number;           // 기본 가격 (int4, 원 단위)
+  discountPrice?: number;  // 할인 가격 (int4, nullable)
+  cold: boolean;           // 차가운 음료 제공 여부
+  hot: boolean;            // 따뜻한 음료 제공 여부
+  categoryId?: number;     // 카테고리 FK (bigint, nullable)
+  status: string;          // 메뉴 상태 (common_code.id 참조, 예: 'E0101'=사용, 'E0102'=미사용)
+  marketing: string[];     // 마케팅 태그 (_text 배열, common_code.id 참조, 예: ['E0201', 'E0202'])
+  orderNo: number;         // 정렬 순서 (int4)
+  available?: boolean;     // 프론트엔드 전용: 재고 여부 (status에서 파생, E0101=true)
+  popular?: boolean;       // 프론트엔드 전용: 인기 메뉴 여부 (marketing에 'E0202' 포함 시 true)
 }
 
 /**
  * 카테고리 정보 인터페이스
+ * DB 테이블: category
  */
-export interface CategoryInfo {
-  id: Category;
-  name: string;            // 표시 이름 (한글)
-  icon?: string;           // 아이콘 이름 (lucide-react)
+export interface CategoryInfo extends BaseEntity {
+  id: number;              // 고유 식별자 (bigint, auto increment)
+  name: string;            // 카테고리 이름 (varchar(255), 예: 'COFFEE', 'NON-COFFEE', 'SIGNATURE')
+  orderNo: number;         // 정렬 순서 (int4)
+  status: string;          // 상태 (common_code.id 참조, 예: 'D0101'=사용, 'D0102'=미사용)
+  icon?: string;           // 프론트엔드 전용: 아이콘 이름 (lucide-react)
+}
+
+/**
+ * 이미지 정보 인터페이스
+ * DB 테이블: image
+ */
+export interface MenuImage extends Pick<BaseEntity, 'createdBy' | 'createdDate'> {
+  fileUuid: string;        // 파일 UUID (varchar(255), PK)
+  fileName: string;        // 파일명 (varchar(255))
+  menuId: number;          // 메뉴 FK (bigint)
+  menuType: string;        // 메뉴 타입 구분자 (varchar(255))
+  ordering: number;        // 이미지 정렬 순서 (int4)
+}
+
+/**
+ * 공통코드 인터페이스
+ * DB 테이블: common_code
+ */
+export interface CommonCode extends BaseEntity {
+  id: string;              // 코드 ID (varchar(50), PK)
+  name: string;            // 코드 이름 (varchar(100))
+  value: string;           // 코드 값 (varchar(100), unique)
+  description?: string;    // 코드 설명 (text, nullable)
+  extraValue?: string;     // 추가 값 (text, nullable)
+  parentId?: string;       // 부모 코드 ID (varchar(50), nullable, self FK)
+  sortOrder: number;       // 정렬 순서 (int4, default 0)
+  delYn: string;           // 삭제 여부 (varchar(1), default 'N')
+}
+
+/**
+ * 프론트엔드 전용 - 간소화된 메뉴 아이템
+ * API 응답에서 사용
+ */
+export interface MenuItemDisplay {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discountPrice?: number;
+  image: string;           // 첫 번째 이미지 URL
+  images: MenuImage[];     // 전체 이미지 목록
+  category: string;        // 카테고리명 (조인 후)
+  categoryId?: number;
+  tags: string[];          // 마케팅 태그 (common_code 조인 후 name 배열)
+  available: boolean;      // status 기반 계산
+  popular: boolean;        // marketing 배열에서 "인기" 태그 포함 여부
+  cold: boolean;
+  hot: boolean;
+  orderNo: number;
 }
 ```
 
 #### 📄 `src/types/cart.ts`
 ```typescript
-import type { MenuItem } from './menu';
+import type { MenuItemDisplay } from './menu';
 
 /**
  * 장바구니 아이템 (수량 포함)
  */
-export interface CartItem extends MenuItem {
+export interface CartItem extends MenuItemDisplay {
   quantity: number;        // 수량 (최소 1)
 }
 
 /**
  * 주문 정보
+ * 향후 DB 연동 시 order 테이블 생성 예정
  */
 export interface Order {
-  id: string;              // 주문 고유 ID
+  id: string;              // 주문 고유 ID (UUID)
   items: CartItem[];       // 주문 아이템 목록
   totalPrice: number;      // 총 금액
   timestamp: Date;         // 주문 시간
@@ -156,25 +227,25 @@ export interface Order {
 #### 📄 `src/store/cart-store.ts`
 ```typescript
 import { create } from 'zustand';
-import type { MenuItem } from '@/types/menu';
+import type { MenuItemDisplay } from '@/types/menu';
 import type { CartItem } from '@/types/cart';
 
 interface CartStore {
   items: CartItem[];
 
   // 아이템 추가 (이미 있으면 수량 증가)
-  addItem: (item: MenuItem) => void;
+  addItem: (item: MenuItemDisplay) => void;
 
   // 아이템 제거
-  removeItem: (id: string) => void;
+  removeItem: (id: number) => void;
 
   // 수량 업데이트
-  updateQuantity: (id: string, quantity: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
 
   // 장바구니 비우기
   clearCart: () => void;
 
-  // 총 금액 계산
+  // 총 금액 계산 (할인가 우선 적용)
   getTotalPrice: () => number;
 
   // 총 아이템 개수
@@ -220,7 +291,11 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   getTotalPrice: () => {
-    return get().items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    return get().items.reduce((sum, item) => {
+      // 할인가가 있으면 할인가 사용, 없으면 정가 사용
+      const itemPrice = item.discountPrice ?? item.price;
+      return sum + itemPrice * item.quantity;
+    }, 0);
   },
 
   getTotalItems: () => {
@@ -233,102 +308,176 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
 #### 📄 `src/data/mock-menu.ts`
 ```typescript
-import type { MenuItem } from '@/types/menu';
+import type { MenuItemDisplay } from '@/types/menu';
 
-export const mockMenuItems: MenuItem[] = [
+/**
+ * 모크 메뉴 데이터
+ * 실제 DB 연동 시 API 응답으로 대체 예정
+ *
+ * DB 스키마 기반:
+ * - id: bigint (auto increment)
+ * - price/discountPrice: int4 (원 단위)
+ * - cold/hot: boolean (온도 옵션)
+ * - category: category 테이블 조인 후 이름
+ * - tags: marketing 필드 (_text 배열) → common_code 조인 후 이름 배열
+ * - available: status 코드 기반 계산 (E0101 = 사용)
+ * - popular: marketing 배열에 "Best" 태그 포함 여부
+ *
+ * 실제 DB 데이터 기반:
+ * - Category IDs: 1=COFFEE, 2=NON-COFFEE, 3=SIGNATURE, 4=SMOOTHIE & FRAPPE, 5=ADE & TEA, 6=COLD BREW
+ * - Status: E0101=사용, E0102=미사용
+ * - Marketing: E0201=New, E0202=Best, E0203=Event
+ */
+export const mockMenuItems: MenuItemDisplay[] = [
   {
-    id: '1',
-    name: '아메리카노',
-    description: '진한 에스프레소에 뜨거운 물을 더한 클래식 커피',
-    price: 4500,
+    id: 87,
+    name: '아메리카노 HOT',
+    description: 'SPECIALTY로 즐기는 특별한 한잔!',
+    price: 1500,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
-    category: 'coffee',
-    tags: ['인기', 'HOT'],
+    images: [],
+    category: 'COFFEE',
+    categoryId: 1,
+    tags: [],
     available: true,
-    popular: true,
+    popular: false,
+    cold: false,
+    hot: true,
+    orderNo: 1,
   },
   {
-    id: '2',
-    name: '카페 라떼',
-    description: '부드러운 우유와 에스프레소의 완벽한 조화',
-    price: 5000,
+    id: 88,
+    name: '아메리카노 ICE',
+    description: 'SPECIALTY로 즐기는 특별한 한잔!',
+    price: 2000,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500',
-    category: 'coffee',
-    tags: ['인기'],
+    images: [],
+    category: 'COFFEE',
+    categoryId: 1,
+    tags: [],
     available: true,
-    popular: true,
+    popular: false,
+    cold: true,
+    hot: false,
+    orderNo: 2,
   },
   {
-    id: '3',
-    name: '카푸치노',
-    description: '풍부한 우유 거품이 올라간 진한 커피',
-    price: 5000,
+    id: 92,
+    name: '카페라떼',
+    description: '원두선택 가능, HOT/ICE',
+    price: 7200,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500',
-    category: 'coffee',
+    images: [],
+    category: 'COFFEE',
+    categoryId: 1,
     tags: [],
     available: true,
+    popular: false,
+    cold: true,
+    hot: true,
+    orderNo: 7,
   },
   {
-    id: '4',
-    name: '초콜릿 케이크',
-    description: '진한 초콜릿 맛이 일품인 디저트',
-    price: 6500,
+    id: 120,
+    name: '흑임자크림라떼',
+    description: '고소하고 부드럽게, 힘이나 No.1 signature',
+    price: 4200,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500',
-    category: 'dessert',
-    tags: ['신메뉴'],
-    available: true,
-  },
-  {
-    id: '5',
-    name: '치즈케이크',
-    description: '부드럽고 고소한 뉴욕 스타일 치즈케이크',
-    price: 6000,
-    image: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866?w=500',
-    category: 'dessert',
-    tags: ['인기'],
+    images: [],
+    category: 'SIGNATURE',
+    categoryId: 3,
+    tags: ['Best'],
     available: true,
     popular: true,
+    cold: true,
+    hot: false,
+    orderNo: 1,
   },
   {
-    id: '6',
-    name: '녹차 라떼',
-    description: '고급 말차로 만든 건강한 음료',
-    price: 5500,
+    id: 129,
+    name: '밀크퐁프라페',
+    description: '퐁프라페 플레인',
+    price: 3900,
+    discountPrice: undefined,
+    image: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866?w=500',
+    images: [],
+    category: 'SMOOTHIE & FRAPPE',
+    categoryId: 4,
+    tags: [],
+    available: true,
+    popular: false,
+    cold: true,
+    hot: false,
+    orderNo: 14,
+  },
+  {
+    id: 115,
+    name: '말차라떼',
+    description: 'HOT/ICE',
+    price: 3200,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=500',
-    category: 'beverage',
+    images: [],
+    category: 'NON-COFFEE',
+    categoryId: 2,
     tags: [],
     available: true,
+    popular: false,
+    cold: true,
+    hot: true,
+    orderNo: 3,
   },
   {
-    id: '7',
-    name: '딸기 스무디',
-    description: '신선한 딸기로 만든 시원한 스무디',
-    price: 6000,
+    id: 142,
+    name: '딸기요거트스무디',
+    description: '딸기요거트스무디',
+    price: 4200,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=500',
-    category: 'beverage',
-    tags: ['여름 한정'],
-    available: false, // 품절 예시
+    images: [],
+    category: 'SMOOTHIE & FRAPPE',
+    categoryId: 4,
+    tags: ['New'],
+    available: true,
+    popular: false,
+    cold: true,
+    hot: false,
+    orderNo: 2,
   },
   {
-    id: '8',
-    name: '크로와상',
-    description: '버터 풍미 가득한 바삭한 페이스트리',
-    price: 4000,
+    id: 161,
+    name: '콜드브루',
+    description: 'ICE only',
+    price: 3300,
+    discountPrice: undefined,
     image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500',
-    category: 'food',
+    images: [],
+    category: 'COLD BREW',
+    categoryId: 6,
     tags: [],
     available: true,
+    popular: false,
+    cold: true,
+    hot: false,
+    orderNo: 1,
   },
 ];
 
 /**
  * 카테고리 정보
+ * 실제 DB 데이터 기반
  */
 export const categories = [
-  { id: 'coffee' as const, name: '커피', icon: 'Coffee' },
-  { id: 'dessert' as const, name: '디저트', icon: 'Cake' },
-  { id: 'beverage' as const, name: '음료', icon: 'Droplet' },
-  { id: 'food' as const, name: '푸드', icon: 'Sandwich' },
+  { id: 1, name: 'COFFEE', icon: 'Coffee' },
+  { id: 2, name: 'NON-COFFEE', icon: 'Droplet' },
+  { id: 3, name: 'SIGNATURE', icon: 'Star' },
+  { id: 4, name: 'SMOOTHIE & FRAPPE', icon: 'IceCream' },
+  { id: 5, name: 'ADE & TEA', icon: 'Coffee' },
+  { id: 6, name: 'COLD BREW', icon: 'Coffee' },
 ];
 ```
 
@@ -402,20 +551,22 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
 ```typescript
 'use client';
 
-import { Coffee, Cake, Droplet, Sandwich } from 'lucide-react';
-import type { Category } from '@/types/menu';
+import { Coffee, Droplet, Star, IceCream } from 'lucide-react';
 
 interface CategoryTabsProps {
-  selectedCategory: Category | 'all';
-  onCategoryChange: (category: Category | 'all') => void;
+  selectedCategory: number | 'all';
+  onCategoryChange: (category: number | 'all') => void;
 }
 
+// 실제 DB 카테고리 데이터 기반
 const categories = [
   { id: 'all' as const, name: '전체', Icon: null },
-  { id: 'coffee' as const, name: '커피', Icon: Coffee },
-  { id: 'dessert' as const, name: '디저트', Icon: Cake },
-  { id: 'beverage' as const, name: '음료', Icon: Droplet },
-  { id: 'food' as const, name: '푸드', Icon: Sandwich },
+  { id: 1, name: 'COFFEE', Icon: Coffee },
+  { id: 2, name: 'NON-COFFEE', Icon: Droplet },
+  { id: 3, name: 'SIGNATURE', Icon: Star },
+  { id: 4, name: 'SMOOTHIE & FRAPPE', Icon: IceCream },
+  { id: 5, name: 'ADE & TEA', Icon: Coffee },
+  { id: 6, name: 'COLD BREW', Icon: Coffee },
 ];
 
 export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTabsProps) {
@@ -614,7 +765,7 @@ import type { Category } from '@/types/menu';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const { getTotalItems } = useCartStore();
@@ -622,7 +773,7 @@ export default function HomePage() {
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -939,7 +1090,7 @@ import type { Category, MenuItem } from '@/types/menu';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -949,7 +1100,7 @@ export default function HomePage() {
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1320,7 +1471,7 @@ import type { Category, MenuItem } from '@/types/menu';
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<Category | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -1331,7 +1482,7 @@ export default function HomePage() {
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
     const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1595,37 +1746,89 @@ pnpm start
 
 ## 📚 부록 A: 데이터 모델 상세
 
-### MenuItem 타입
+### 데이터베이스 스키마 참고
+실제 데이터베이스 스키마는 `docs/ddl.md` 참고
+
+### MenuItem 타입 (DB 연동 전)
 ```typescript
-interface MenuItem {
-  id: string;              // UUID 또는 숫자 ID
-  name: string;            // 최대 50자
-  description: string;     // 최대 200자
-  price: number;           // 양수, 최소 0원
-  image: string;           // URL 형식
-  category: 'coffee' | 'dessert' | 'beverage' | 'food';
-  tags: string[];          // 최대 5개
-  available: boolean;      // 기본값: true
-  popular?: boolean;       // 옵션, 기본값: false
+interface MenuItem extends BaseEntity {
+  id: number;              // bigint (auto increment)
+  name: string;            // varchar(255)
+  description: string;     // varchar(500)
+  price: number;           // int4 (원 단위, 양수)
+  discountPrice?: number;  // int4 (원 단위, nullable)
+  cold: boolean;           // 차가운 음료 제공 여부
+  hot: boolean;            // 따뜻한 음료 제공 여부
+  categoryId?: number;     // bigint (FK to category)
+  status: string;          // varchar(255) (common_code.id 참조)
+  marketing: string[];     // _text 배열 (common_code.id 참조)
+  orderNo: number;         // int4 (정렬 순서)
+}
+```
+
+### MenuItemDisplay 타입 (프론트엔드 전용)
+```typescript
+interface MenuItemDisplay {
+  id: number;
+  name: string;            // 최대 255자
+  description: string;     // 최대 500자
+  price: number;           // 원 단위
+  discountPrice?: number;  // 할인가 (있는 경우)
+  image: string;           // 첫 번째 이미지 URL
+  images: MenuImage[];     // 전체 이미지 목록
+  category: string;        // 카테고리명 (조인 후)
+  categoryId?: number;
+  tags: string[];          // 마케팅 태그 (최대 5개 권장)
+  available: boolean;      // status 기반 계산
+  popular: boolean;        // marketing 배열에서 파생
+  cold: boolean;
+  hot: boolean;
+  orderNo: number;
 }
 ```
 
 ### CartItem 타입
 ```typescript
-interface CartItem extends MenuItem {
-  quantity: number;        // 최소 1, 최대 99
+interface CartItem extends MenuItemDisplay {
+  quantity: number;        // 최소 1, 최대 99 권장
 }
 ```
 
-### Order 타입
+### Order 타입 (향후 DB 연동)
 ```typescript
 interface Order {
   id: string;              // UUID
   items: CartItem[];       // 최소 1개
-  totalPrice: number;      // items의 합계
+  totalPrice: number;      // items의 합계 (할인가 우선)
   timestamp: Date;         // 주문 생성 시간
   status: 'pending' | 'confirmed' | 'completed';
 }
+```
+
+### 공통코드 구조 (계층형)
+```typescript
+interface CommonCode extends BaseEntity {
+  id: string;              // varchar(50) (예: "E0101")
+  name: string;            // varchar(100) (예: "사용")
+  value: string;           // varchar(100) (unique, 예: "MENU_ACTIVE")
+  parentId?: string;       // varchar(50) (self FK, 예: "E01")
+  sortOrder: number;       // int4 (정렬)
+  delYn: string;           // varchar(1) ('Y' | 'N')
+}
+
+// 실제 DB 공통코드 예시
+// - 메뉴 관련: E (parent)
+//   - 메뉴 상태: E01 (parent)
+//     - E0101 (child): "사용" (MENU_ACTIVE)
+//     - E0102 (child): "미사용" (MENU_INACTIVE)
+//   - 메뉴 마케팅 유형: E02 (parent)
+//     - E0201 (child): "New" (MENU_TYPE_NEW)
+//     - E0202 (child): "Best" (MENU_TYPE_BEST)
+//     - E0203 (child): "Event" (MENU_TYPE_EVENT)
+// - 카테고리 관련: D (parent)
+//   - 카테고리 상태: D01 (parent)
+//     - D0101 (child): "사용" (CATEGORY_ACTIVE)
+//     - D0102 (child): "미사용" (CATEGORY_INACTIVE)
 ```
 
 ---

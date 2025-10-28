@@ -1,0 +1,77 @@
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-05-22 22:34:24.26','hc_super','2022-03-21 18:35:47.68',false,'SPECIALTY로 즐기는 특별한 한잔!',NULL,true,NULL,'아메리카노 HOT',1,1500,'E0101',1),
+	 ('hc_super','2021-05-22 22:37:16.387','hc_super','2022-03-21 18:35:47.683',true,'SPECIALTY로 즐기는 특별한 한잔!',NULL,false,NULL,'아메리카노 ICE',2,2000,'E0101',1),
+	 ('hc_super','2021-05-22 22:38:54.34','hc_super','2022-03-21 18:35:47.683',true,'아메리카노+꿀',NULL,true,NULL,'꿀 아메리카노',3,2500,'E0101',1),
+	 ('hc_super','2021-05-22 22:42:04.487','hc_super','2022-03-21 18:35:47.683',true,'아메리카노에 바닐라시럽 추가',NULL,true,NULL,'바닐라 아메리카노',5,2500,'E0101',1),
+	 ('hc_super','2021-05-22 22:43:23.363','hc_super','2022-03-21 18:35:47.683',true,'아메리카노에 헤이즐넛 시럽 추가',NULL,true,NULL,'헤이즐넛 아메리카노',4,2500,'E0101',1),
+	 ('hc_super','2021-05-22 22:45:33.74','hc_super','2022-03-21 18:35:47.683',true,'원두선택 가능, HOT/ICE',NULL,true,NULL,'카페라떼',7,7200,'E0101',1),
+	 ('hc_super','2021-05-22 22:47:33.02','hc_super','2022-03-21 18:35:47.683',true,'카페라떼에 바닐라 시럽 추가',NULL,true,NULL,'바닐라 라떼',9,3200,'E0101',1),
+	 ('hc_super','2021-05-22 22:48:21.263','hc_super','2022-03-21 18:35:47.683',true,'카페라떼에 헤이즐넛 시럽 추가',NULL,true,NULL,'헤이즐넛 라떼',8,3200,'E0101',1),
+	 ('hc_super','2021-05-22 22:50:01.44','hc_super','2022-03-21 18:35:47.683',true,'원두선택, HOT/ICE',NULL,true,NULL,'연유라떼',13,3700,'E0101',1),
+	 ('hc_super','2021-05-28 14:59:52.56','hc_super','2022-03-21 18:35:47.683',true,'ICE only, 원두선택',NULL,false,NULL,'티라미수라떼(ICE)',16,4000,'E0101',1);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-05-28 15:15:42.453','hc_super','2022-03-21 18:35:47.683',true,'HOT/ICE',NULL,true,NULL,'카푸치노',10,7200,'E0101',1),
+	 ('hc_super','2021-05-28 15:24:00.577','hc_super','2022-03-21 18:35:47.683',true,'HOT/ICE',NULL,true,NULL,'카페모카',11,3700,'E0101',1),
+	 ('hc_super','2021-05-28 15:25:31.62','hc_super','2022-03-21 18:35:47.683',true,'HOT/ICE',NULL,true,NULL,'카라멜 마끼아또',12,3500,'E0101',1),
+	 ('hc_super','2021-05-28 15:28:39.677','hc_super','2022-03-21 18:35:47.683',true,'ICE only',NULL,false,NULL,'큐브라떼',14,3800,'E0101',1),
+	 ('hc_super','2021-07-25 15:42:41.43','hc_super','2022-03-21 18:35:47.683',true,'3샷 1리터 아메리카노',NULL,false,NULL,'힘이나커피 ICE',6,3000,'E0101',1),
+	 ('hc_super','2021-07-25 15:46:30.49','hc_super','2022-03-21 18:35:47.683',true,'HOT/ICE',NULL,true,NULL,'민트카페모카',15,4300,'E0101',1),
+	 ('hc_super','2021-07-25 15:49:17.16','hc_super','2022-03-21 18:35:47.687',true,'샷추가/Non샷 가능',NULL,false,NULL,'달고나라떼',17,4200,'E0101',1),
+	 ('hc_super','2021-07-25 16:52:14.55','hc_super','2021-07-26 13:22:11.707',true,'고소하고 부드럽게, 힘이나 No.1 signature',NULL,false,NULL,'흑임자크림라떼',1,4200,'E0101',3),
+	 ('hc_super','2021-07-25 16:53:39.4','hc_super','2021-07-26 13:25:54.38',false,'따뜻하게 즐기는 향긋한 와인의 풍미(논알콜 뱅쇼)',NULL,true,NULL,'힘나쇼',2,4200,'E0101',3),
+	 ('hc_super','2021-07-25 16:54:27.597','hc_super','2021-07-26 13:28:10.1',true,'시원하게 즐기는 향긋한 와인의 풍미(논알콜 상그리아)',NULL,false,NULL,'힘나리아',3,4200,'E0101',3);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-07-25 16:55:15.177','hc_super','2021-07-26 13:28:54.793',true,'현지의 맛 그대로! 코코넛 향 가득한 커피스무디',NULL,false,NULL,'월남커피',4,4200,'E0101',3),
+	 ('hc_super','2021-05-22 23:12:30.097','hc_super','2022-03-21 18:51:17.88',true,'망고요거트스무디',NULL,false,NULL,'망고요거트스무디',6,3900,'E0101',4),
+	 ('hc_super','2021-05-28 15:06:11.387','hc_super','2022-03-21 18:50:27.553',true,'퐁프라페 플레인',NULL,false,NULL,'퐁프라페 플레인',14,3900,'E0101',4),
+	 ('hc_super','2021-07-25 17:10:31','hc_super','2022-03-21 18:50:06.337',true,'퐁프라페 딸기',NULL,false,NULL,'퐁프라페 딸기',15,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:11:49.793','hc_super','2022-03-21 18:49:21.82',true,'퐁프라페 바나나',NULL,false,NULL,'퐁프라페 바나나',16,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:13:48.653','hc_super','2022-03-21 18:49:00.943',true,'퐁프라페 오곡',NULL,false,NULL,'퐁프라페 오곡',17,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:14:59.13','hc_super','2022-03-21 18:48:35.49',true,'바나나프라페 플레인',NULL,false,NULL,'바나나프라페 플레인',18,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:42:54.28','hc_super','2022-03-21 18:47:58.877',true,'바나나프라페 딸기',NULL,false,NULL,'바나나프라페 딸기',19,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:43:49.09','hc_super','2022-03-21 18:47:39.09',true,'바나나프라페 초코',NULL,false,NULL,'바나나프라페 초코',20,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:44:44.923','hc_super','2022-03-21 18:47:14.35',true,'쿠키프라페',NULL,false,NULL,'쿠키프라페',10,4200,'E0101',4);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-07-25 17:45:39.853','hc_super','2022-03-21 18:47:02.677',true,'초코프라페',NULL,false,NULL,'초코프라페',7,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:46:05.1','hc_super','2022-03-21 18:46:52.607',true,'녹차프라페',NULL,false,NULL,'녹차프라페',8,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:46:27.4','hc_super','2022-03-21 18:46:38.6',true,'커피프라페',NULL,false,NULL,'커피프라페',11,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:47:20.73','hc_super','2022-03-21 18:46:20.647',true,'민트초코프라페',NULL,false,NULL,'민트초코프라페',13,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:48:21.4','hc_super','2022-03-21 18:46:09.053',true,'플레인요거트스무디',NULL,false,NULL,'플레인요거트스무디',1,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:48:56.897','hc_super','2022-03-21 18:45:47.68',true,'딸기요거트스무디',NULL,false,NULL,'딸기요거트스무디',2,4200,'E0101',4),
+	 ('hc_super','2021-07-25 17:49:55.953','hc_super','2022-03-21 18:45:34.58',true,'블루베리요거트스무디',NULL,false,NULL,'블루베리요거트스무디',4,3900,'E0101',4),
+	 ('hc_super','2021-07-25 16:02:33.267','hc_super','2022-03-21 18:34:21.167',true,'HOT/ICE',NULL,true,NULL,'홍차라떼',4,3500,'E0101',2),
+	 ('hc_super','2021-05-22 22:55:19.303','hc_super','2022-03-21 18:34:21.167',true,'HOT/ICE',NULL,true,NULL,'고구마라떼',6,3800,'E0101',2),
+	 ('hc_super','2021-07-25 16:07:53.113','hc_super','2022-03-21 18:34:21.167',true,'ICE',NULL,false,NULL,'흑당버블티',10,4800,'E0101',2);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-07-25 15:59:08.35','hc_super','2022-03-21 18:39:14.233',true,'HOT/ICE',NULL,true,NULL,'말차라떼',3,3200,'E0101',2),
+	 ('hc_super','2021-05-28 15:04:15.91','hc_super','2022-03-21 18:34:21.167',true,'ICE only',NULL,false,NULL,'흑당버블그린티',11,4800,'E0101',2),
+	 ('hc_super','2021-05-22 23:25:10.693','hc_super','2022-03-21 18:34:21.167',true,'ICE only',NULL,false,NULL,'오레오초코라떼',9,3900,'E0101',2),
+	 ('hc_super','2021-05-22 22:58:24.88','hc_super','2021-07-25 18:15:17.45',true,'HOT/ICE',NULL,true,NULL,'말차라떼',3,3200,'E0102',2),
+	 ('hc_super','2021-05-22 23:00:35.133','hc_super','2022-03-21 18:34:21.167',true,'ICE only',NULL,false,NULL,'딸기라떼',2,3500,'E0101',2),
+	 ('hc_super','2021-07-25 16:00:49.08','hc_super','2022-03-21 18:34:21.167',true,'HOT/ICE',NULL,true,NULL,'민트초코라떼',8,3500,'E0101',2),
+	 ('hc_super','2021-05-22 22:57:11.75','hc_super','2022-03-21 18:34:21.167',true,'HOT/ICE',NULL,true,NULL,'오곡라떼',5,3300,'E0101',2),
+	 ('hc_super','2021-07-25 16:04:40.727','hc_super','2022-03-21 18:34:21.167',true,'HOT/ICE',NULL,true,NULL,'토피넛라떼',7,3800,'E0101',2),
+	 ('hc_super','2021-07-25 15:58:11.4','hc_super','2022-03-21 18:34:21.163',true,'HOT/ICE',NULL,true,NULL,'초코라떼',1,3200,'E0101',2),
+	 ('hc_super','2021-05-28 15:02:48.903','hc_super','2022-03-21 18:34:21.167',true,'ICE only',NULL,false,NULL,'흑당버블밀크티',12,4800,'E0101',2);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-05-22 23:01:40.527','hc_super','2022-03-21 18:57:44.003',true,'딸기+바나나',NULL,false,NULL,'딸기바나나주스',9,3800,'E0101',5),
+	 ('hc_super','2021-05-22 23:04:41.717','hc_super','2022-03-21 18:57:44.003',true,'딸기+얼음',NULL,false,NULL,'딸기주스',8,3800,'E0101',5),
+	 ('hc_super','2021-05-22 23:06:42.573','hc_super','2022-03-21 18:57:44.003',true,'라임/자몽/청포도',NULL,false,NULL,'라임 모히또(무알콜)',7,3800,'E0101',5),
+	 ('hc_super','2021-05-22 23:08:21.297','hc_super','2022-03-21 18:57:44.003',true,'ICE only',NULL,false,NULL,'레몬에이드',3,3500,'E0101',5),
+	 ('hc_super','2021-05-22 23:09:39.53','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'레몬진저티',16,4000,'E0101',5),
+	 ('hc_super','2021-05-22 23:10:33.09','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'레몬 Tea',12,3500,'E0101',5),
+	 ('hc_super','2021-05-22 23:19:14.523','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'사과유자티',17,4000,'E0101',5),
+	 ('hc_super','2021-05-22 23:21:40.777','hc_super','2022-03-21 18:57:44.003',true,'ICE only',NULL,false,NULL,'복숭아 아이스티',2,3000,'E0101',5),
+	 ('hc_super','2021-05-22 23:23:12.057','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'얼그레이 Tea',11,3000,'E0101',5),
+	 ('hc_super','2021-05-22 23:24:05.427','hc_super','2022-03-21 18:57:44.003',true,'오곡+바나나',NULL,false,NULL,'오곡바나나주스',10,3800,'E0101',5);
+INSERT INTO public.menu (created_by,created_date,updated_by,updated_date,cold,description,discount_price,hot,marketing,"name",order_no,price,status,category_id) VALUES
+	 ('hc_super','2021-05-22 23:26:15.353','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'유자 Tea',13,3500,'E0101',5),
+	 ('hc_super','2021-05-22 23:27:45.367','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'자몽블랙 Tea',15,4000,'E0101',5),
+	 ('hc_super','2021-05-22 23:29:59.21','hc_super','2022-03-21 18:57:44.003',true,'레몬/자몽/청포도',NULL,false,NULL,'자몽에이드',4,3500,'E0101',5),
+	 ('hc_super','2021-05-22 23:32:18.07','hc_super','2022-03-21 18:57:44.007',true,'HOT/ICE',NULL,true,NULL,'자몽 Tea',14,3500,'E0101',5),
+	 ('hc_super','2021-07-25 17:52:02.647','hc_super','2022-03-21 18:57:44.003',true,'ICE only',NULL,false,NULL,'청포도에이드',5,3500,'E0101',5),
+	 ('hc_super','2021-07-25 17:53:13.83','hc_super','2022-03-21 18:57:44.003',true,'ICE only',NULL,false,NULL,'체리콕',1,3000,'E0101',5),
+	 ('hc_super','2021-07-25 17:53:58.26','hc_super','2022-03-21 18:57:44.003',true,'ICE only',NULL,false,NULL,'힘이나 에이드',6,0,'E0101',5),
+	 ('hc_super','2021-05-28 15:09:09.347','hc_super','2022-03-21 18:23:25.367',true,'ICE only',NULL,false,NULL,'콜드브루',1,3300,'E0101',6),
+	 ('hc_super','2021-07-25 15:51:15.72','hc_super','2022-03-21 18:23:25.367',true,'ICE',NULL,false,NULL,'크림콜드브루',3,4300,'E0101',6),
+	 ('hc_super','2021-07-25 15:52:20.283','hc_super','2022-03-21 18:23:25.367',true,'ICE',NULL,false,NULL,'콜드브루 라떼',2,3800,'E0101',6);

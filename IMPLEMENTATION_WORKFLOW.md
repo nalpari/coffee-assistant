@@ -42,38 +42,116 @@ pnpm add framer-motion
 
 ### TypeScript 타입 정의
 
+실제 데이터베이스 스키마는 `docs/ddl.md` 참고
+
 ```typescript
 // types/menu.ts
-export interface MenuItem {
-  id: string;
+
+/**
+ * 공통 감사 필드
+ */
+export interface BaseEntity {
+  createdBy: string;       // varchar(255)
+  createdDate: Date;       // timestamp
+  updatedBy?: string;      // varchar(255), nullable
+  updatedDate?: Date;      // timestamp, nullable
+}
+
+/**
+ * DB 엔티티: menu 테이블
+ */
+export interface MenuItem extends BaseEntity {
+  id: number;              // bigint (auto increment)
+  name: string;            // varchar(255)
+  description: string;     // varchar(500)
+  price: number;           // int4 (원 단위)
+  discountPrice?: number;  // int4 (nullable)
+  cold: boolean;           // 차가운 음료 제공 여부
+  hot: boolean;            // 따뜻한 음료 제공 여부
+  categoryId?: number;     // bigint (FK)
+  status: string;          // varchar(255) (common_code 참조)
+  marketing: string[];     // _text (common_code 참조)
+  orderNo: number;         // int4 (정렬 순서)
+}
+
+/**
+ * 프론트엔드 전용: API 응답용 간소화 타입
+ */
+export interface MenuItemDisplay {
+  id: number;
   name: string;
   description: string;
   price: number;
-  image: string;
-  category: 'coffee' | 'dessert' | 'beverage' | 'food';
-  tags: string[];
-  available: boolean;
-  popular?: boolean;
+  discountPrice?: number;
+  image: string;           // 첫 번째 이미지 URL
+  images: MenuImage[];     // 전체 이미지 목록
+  category: string;        // 카테고리명 (조인 후)
+  categoryId?: number;
+  tags: string[];          // 마케팅 태그 (조인 후 이름 배열)
+  available: boolean;      // status 기반 계산
+  popular: boolean;        // marketing에서 파생
+  cold: boolean;
+  hot: boolean;
+  orderNo: number;
 }
 
-export interface CartItem extends MenuItem {
+/**
+ * DB 엔티티: image 테이블
+ */
+export interface MenuImage {
+  fileUuid: string;        // varchar(255), PK
+  fileName: string;        // varchar(255)
+  menuId: number;          // bigint (FK)
+  menuType: string;        // varchar(255)
+  ordering: number;        // int4 (정렬)
+  createdBy: string;
+  createdDate: Date;
+}
+
+/**
+ * DB 엔티티: category 테이블
+ */
+export interface CategoryInfo extends BaseEntity {
+  id: number;              // bigint
+  name: string;            // varchar(255)
+  orderNo: number;         // int4
+  status: string;          // varchar(255) (common_code 참조)
+}
+
+/**
+ * DB 엔티티: common_code 테이블 (계층형)
+ */
+export interface CommonCode extends BaseEntity {
+  id: string;              // varchar(50), PK
+  name: string;            // varchar(100)
+  value: string;           // varchar(100), unique
+  description?: string;    // text
+  extraValue?: string;     // text
+  parentId?: string;       // varchar(50), self FK
+  sortOrder: number;       // int4
+  delYn: string;           // varchar(1) ('Y' | 'N')
+}
+
+export interface CartItem extends MenuItemDisplay {
   quantity: number;
 }
 
 export interface Order {
+  id: string;              // UUID
   items: CartItem[];
-  totalPrice: number;
+  totalPrice: number;      // 할인가 우선 적용
   timestamp: Date;
   status: 'pending' | 'confirmed' | 'completed';
 }
 
 export interface CartStore {
   items: CartItem[];
-  addItem: (item: MenuItem) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: MenuItemDisplay) => void;
+  removeItem: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
-  getTotalPrice: () => number;
+  getTotalPrice: () => number;  // 할인가 우선
+  getTotalItems: () => number;
 }
 ```
 
@@ -248,12 +326,15 @@ export function Header() {
 
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+// 실제 DB 카테고리 데이터 기반
 const categories = [
   { value: 'all', label: '전체' },
-  { value: 'coffee', label: '커피' },
-  { value: 'dessert', label: '디저트' },
-  { value: 'beverage', label: '음료' },
-  { value: 'food', label: '푸드' },
+  { value: 1, label: 'COFFEE' },
+  { value: 2, label: 'NON-COFFEE' },
+  { value: 3, label: 'SIGNATURE' },
+  { value: 4, label: 'SMOOTHIE & FRAPPE' },
+  { value: 5, label: 'ADE & TEA' },
+  { value: 6, label: 'COLD BREW' },
 ]
 
 export function CategoryTabs() {

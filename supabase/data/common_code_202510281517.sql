@@ -1,0 +1,95 @@
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('A','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','가맹문의 관련 코드',NULL,'가맹문의',NULL,1,'INQUIRY'),
+	 ('A01','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','가맹문의 처리 상태',NULL,'가맹문의 상태','A',1,'INQUIRY_STATUS'),
+	 ('A0101','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'처리전','A01',1,'INQUIRY_PENDING'),
+	 ('A0102','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'처리완료','A01',2,'INQUIRY_COMPLETED'),
+	 ('A02','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','가맹문의자 연령대 구분',NULL,'가맹문의 연령대','A',2,'INQUIRY_AGE_GROUP'),
+	 ('A0201','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','20세 이상 30세 미만',NULL,'20대','A02',1,'TWENTIES'),
+	 ('A0202','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','30세 이상 40세 미만',NULL,'30대','A02',2,'THIRTIES'),
+	 ('A0203','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','40세 이상 50세 미만',NULL,'40대','A02',3,'FORTIES'),
+	 ('A0204','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','50세 이상 60세 미만',NULL,'50대','A02',4,'FIFTIES'),
+	 ('A0205','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','60세 이상',NULL,'60대 이상','A02',5,'SIXTIES_AND_ABOVE');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('A03','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'가맹문의 브랜드 인지 경로','A',3,'INQUIRY_BRAND_AWARENESS_CHANNEL'),
+	 ('A0301','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'매장방문','A03',1,'STORE_VISIT'),
+	 ('A0302','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'지인소개','A03',2,'PERSONAL_REFERRAL'),
+	 ('A0303','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N',NULL,NULL,'인터넷 검색','A03',3,'ONLINE_SEARCH'),
+	 ('A0304','interplug','2025-09-29 12:07:28.573459','interplug','2025-09-29 12:07:28.573459','N','직접입력',NULL,'기타','A03',4,'OTHER'),
+	 ('B','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N','창업설명회 관련 코드',NULL,'창업설명회',NULL,2,'SEMINAR'),
+	 ('B01','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N','창업설명회 진행 상태',NULL,'설명회 상태','B',1,'SEMINAR_STATUS'),
+	 ('B0101','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,NULL,'대기중','B01',1,'SEMINAR_PENDING'),
+	 ('B0102','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,NULL,'접수중','B01',2,'SEMINAR_ACTIVE'),
+	 ('B0103','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,NULL,'접수종료','B01',3,'SEMINAR_COMPLETED');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('B02','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N','창업설명회 개최 장소',NULL,'설명회 장소','B',2,'SEMINAR_LOCATION'),
+	 ('B0202','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,'실제 주소','서울사무소','B02',2,'SEOUL_OFFICE'),
+	 ('B0203','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,'실제 주소','무교점','B02',3,'MUGYO_BRANCH'),
+	 ('B0204','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,'실제 주소','여의도점','B02',4,'YEOUIDO_BRANCH'),
+	 ('C','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N','자주묻는질문 관련 코드',NULL,'자주묻는질문',NULL,3,'FAQ'),
+	 ('C01','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N','자주묻는질문 질문 유형 분류',NULL,'자주묻는질문 유형','C',1,'FAQ_TYPE'),
+	 ('C0101','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N',NULL,NULL,'매장','C01',1,'FAQ_TYPE_STORE'),
+	 ('C0102','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N',NULL,NULL,'메뉴','C01',2,'FAQ_TYPE_MENU'),
+	 ('C0103','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N',NULL,NULL,'창업','C01',3,'FAQ_TYPE_FRANCHISE'),
+	 ('C0104','interplug','2025-09-29 12:07:28.580311','interplug','2025-09-29 12:07:28.580311','N',NULL,NULL,'스마트오더','C01',4,'FAQ_TYPE_SMART_ORDER');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('D','interplug','2025-09-29 12:07:28.582079','interplug','2025-09-29 12:07:28.582079','N','메뉴 카테고리 관련 코드',NULL,'메뉴카테고리',NULL,4,'CATEGORY'),
+	 ('D01','interplug','2025-09-29 12:07:28.582079','interplug','2025-09-29 12:07:28.582079','N','카테고리 사용 상태',NULL,'카테고리 상태','D',1,'CATEGORY_STATUS'),
+	 ('D0101','interplug','2025-09-29 12:07:28.582079','interplug','2025-09-29 12:07:28.582079','N',NULL,NULL,'사용','D01',1,'CATEGORY_ACTIVE'),
+	 ('D0102','interplug','2025-09-29 12:07:28.582079','interplug','2025-09-29 12:07:28.582079','N',NULL,NULL,'미사용','D01',2,'CATEGORY_INACTIVE'),
+	 ('E','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N','메뉴 관련 코드',NULL,'메뉴',NULL,5,'MENU'),
+	 ('E01','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N','메뉴 사용 상태',NULL,'메뉴 상태','E',1,'MENU_STATUS'),
+	 ('E0101','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N',NULL,NULL,'사용','E01',1,'MENU_ACTIVE'),
+	 ('E0102','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N',NULL,NULL,'미사용','E01',2,'MENU_INACTIVE'),
+	 ('E02','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N','메뉴 마케팅 표시 유형',NULL,'메뉴 마케팅 유형','E',2,'MENU_MARKETING_TYPE'),
+	 ('E0201','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N',NULL,NULL,'New','E02',1,'MENU_TYPE_NEW');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('E0202','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N',NULL,NULL,'Best','E02',2,'MENU_TYPE_BEST'),
+	 ('E0203','interplug','2025-09-29 12:07:28.583868','interplug','2025-09-29 12:07:28.583868','N',NULL,NULL,'Event','E02',3,'MENU_TYPE_EVENT'),
+	 ('F','interplug','2025-09-29 12:07:28.586949','interplug','2025-09-29 12:07:28.586949','N','신메뉴 관련 코드',NULL,'신메뉴',NULL,6,'NEWMENU'),
+	 ('F01','interplug','2025-09-29 12:07:28.586949','interplug','2025-09-29 12:07:28.586949','N','신메뉴 출시 상태',NULL,'신메뉴 상태','F',1,'NEWMENU_STATUS'),
+	 ('F0101','interplug','2025-09-29 12:07:28.586949','interplug','2025-09-29 12:07:28.586949','N',NULL,NULL,'대기중','F01',1,'NEWMENU_PENDING'),
+	 ('F0102','interplug','2025-09-29 12:07:28.586949','interplug','2025-09-29 12:07:28.586949','N',NULL,NULL,'진행중','F01',2,'NEWMENU_ACTIVE'),
+	 ('F0103','interplug','2025-09-29 12:07:28.586949','interplug','2025-09-29 12:07:28.586949','N',NULL,NULL,'종료','F01',3,'NEWMENU_COMPLETED'),
+	 ('G','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','매장 관련 코드',NULL,'매장',NULL,7,'STORE'),
+	 ('G01','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','매장 운영 상태 구분',NULL,'매장 운영 상태','G',1,'STORE_STATUS'),
+	 ('G0101','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'운영','G01',1,'STORE_OPERATING');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('G0102','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'미운영','G01',2,'STORE_CLOSED'),
+	 ('G0103','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'상담중','G01',3,'STORE_CONSULTING'),
+	 ('G02','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','매장 위치 지역 구분',NULL,'매장 지역','G',2,'STORE_REGION'),
+	 ('G0201','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','서울특별시',NULL,'서울','G02',1,'SEOUL'),
+	 ('G0202','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','경기도',NULL,'경기','G02',2,'GYEONGGI'),
+	 ('G0203','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','강원특별자치도',NULL,'강원','G02',3,'GANGWON'),
+	 ('G0204','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','충청북도',NULL,'충북','G02',4,'CHUNGBUK'),
+	 ('G0205','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','충청남도',NULL,'충남','G02',5,'CHUNGNAM'),
+	 ('G0206','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','전북특별자치도',NULL,'전북','G02',6,'JEONBUK'),
+	 ('G0207','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','전라남도',NULL,'전남','G02',7,'JEONNAM');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('G0208','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','경상북도',NULL,'경북','G02',8,'GYEONGBUK'),
+	 ('G0209','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','경상남도',NULL,'경남','G02',9,'GYEONGNAM'),
+	 ('G03','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','직영점/가맹점 구분',NULL,'매장 직영 유형','G',3,'STORE_TYPE'),
+	 ('G0301','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'직영','G03',1,'DIRECT'),
+	 ('G0302','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'가맹점','G03',2,'FRANCHISE'),
+	 ('G04','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N','매장 제공 서비스 옵션',NULL,'매장 옵션','G',4,'STORE_OPTIONS'),
+	 ('G0401','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'배달','G04',1,'DELIVERY'),
+	 ('G0402','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'주차','G04',2,'PARKING'),
+	 ('G0403','interplug','2025-09-29 12:07:28.589449','interplug','2025-09-29 12:07:28.589449','N',NULL,NULL,'모바일 앱 주문','G04',3,'MOBILE_ORDER'),
+	 ('H','interplug','2025-09-29 12:07:28.593174','interplug','2025-09-29 12:07:28.593174','N','이벤트 관련 코드',NULL,'이벤트',NULL,8,'EVENT');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('H01','interplug','2025-09-29 12:07:28.593174','interplug','2025-09-29 12:07:28.593174','N','이벤트 진행 상태',NULL,'이벤트 상태','H',1,'EVENT_STATUS'),
+	 ('H0101','interplug','2025-09-29 12:07:28.593174','interplug','2025-09-29 12:07:28.593174','N',NULL,NULL,'대기중','H01',1,'EVENT_PENDING'),
+	 ('H0102','interplug','2025-09-29 12:07:28.593174','interplug','2025-09-29 12:07:28.593174','N',NULL,NULL,'진행중','H01',2,'EVENT_ACTIVE'),
+	 ('H0103','interplug','2025-09-29 12:07:28.593174','interplug','2025-09-29 12:07:28.593174','N',NULL,NULL,'종료','H01',3,'EVENT_COMPLETED'),
+	 ('I','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','사용자 관리 관련 코드',NULL,'사용자 관리',NULL,9,'USER'),
+	 ('I01','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','사용자 계정 상태',NULL,'사용자 상태','I',1,'USER_STATUS'),
+	 ('I0101','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N',NULL,NULL,'사용','I01',1,'USER_ACTIVE'),
+	 ('I0102','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N',NULL,NULL,'미사용','I01',2,'USER_INACTIVE'),
+	 ('I02','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','사용자 권한 레벨',NULL,'권한','I',2,'USER_ROLE'),
+	 ('I0201','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','최고 관리자 권한',NULL,'슈퍼관리자','I02',1,'ROLE_SUPER');
+INSERT INTO public.common_code (id,created_by,created_date,updated_by,updated_date,del_yn,description,extra_value,"name",parent_id,sort_order,value) VALUES
+	 ('I0202','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','관리자 권한',NULL,'관리자','I02',2,'ROLE_ADMIN'),
+	 ('I0203','interplug','2025-09-29 12:07:28.595251','interplug','2025-09-29 12:07:28.595251','N','매니저 권한',NULL,'매니저','I02',3,'ROLE_MANAGER'),
+	 ('J','interplug','2025-10-13 14:08:21.244045','interplug','2025-10-13 14:08:21.244','N','FO 본부 목록',NULL,'FO 본부',NULL,10,'FO_OFFICE'),
+	 ('J01','interplug','2025-10-13 14:08:21.244','interplug','2025-10-13 14:08:21.244','N',NULL,'{"tel":"02-464-4963","fax":"070-4905-4963","email":"heemina@heemina.com","address":"서울시 서대문구 연세로5다길 22-3","address_detail":"발리빌딩 3층","address_memo":"2호선 신촌역 1번 출구에서 약 250m","memo":"전화는 주중 10시 ~ 18시까지 통화 가능(공휴일 제외)"}','서울사무소','J',1,'FO_OFFICE_SEOUL'),
+	 ('J02','interplug','2025-10-13 14:08:21.244','interplug','2025-10-13 14:08:21.244','N',NULL,'{"tel":"02-798-6760","fax":"070-798-6759","email":"","address":"서울시 강서구 공항대로 222","address_detail":"1202호","address_memo":"5호선 마곡역 4번 출구에서 약 410m","memo":""}','마에스터 커피랩( MEISTER COFFEE LAB)','J',2,'FO_OFFICE_MEISTER'),
+	 ('B0201','interplug','2025-09-29 12:07:28.578251','interplug','2025-09-29 12:07:28.578251','N',NULL,'서울 성동구 성수일로4길 46','본사','B02',1,'HEAD_OFFICE');

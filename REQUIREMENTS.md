@@ -56,7 +56,7 @@ AI 기반 커피 추천 및 관리 시스템을 갖춘 패스트오더 스타일
 
 **기능 설명**:
 - 실시간 메뉴 검색 (키워드 기반)
-- 카테고리별 필터링 (커피, 디저트, 음료, 푸드)
+- 카테고리별 필터링 (COFFEE, NON-COFFEE, SIGNATURE, SMOOTHIE & FRAPPE, ADE & TEA, COLD BREW)
 - 인기 메뉴 표시 (Badge)
 - 재고 상태 표시 (품절 등)
 
@@ -288,35 +288,109 @@ So that 빠르고 직관적으로 주문할 수 있다
 
 ## 📊 데이터 모델
 
+### 데이터베이스 스키마 참고
+실제 데이터베이스 스키마는 `docs/ddl.md` 참고
+
 ### 타입 정의
 
-#### MenuItem
+#### BaseEntity (공통 감사 필드)
 ```typescript
-interface MenuItem {
-  id: string;              // 고유 식별자
-  name: string;            // 메뉴 이름
-  description: string;     // 상세 설명
-  price: number;           // 가격 (원)
-  image: string;           // 이미지 URL
-  category: 'coffee' | 'dessert' | 'beverage' | 'food';
-  tags: string[];          // 태그 (예: "인기", "신메뉴")
-  available: boolean;      // 재고 여부
-  popular?: boolean;       // 인기 메뉴 여부
+interface BaseEntity {
+  createdBy: string;       // 생성자 (varchar(255))
+  createdDate: Date;       // 생성일시 (timestamp)
+  updatedBy?: string;      // 수정자 (varchar(255), nullable)
+  updatedDate?: Date;      // 수정일시 (timestamp, nullable)
+}
+```
+
+#### MenuItem (DB 엔티티)
+```typescript
+interface MenuItem extends BaseEntity {
+  id: number;              // 고유 식별자 (bigint, auto increment)
+  name: string;            // 메뉴 이름 (varchar(255))
+  description: string;     // 상세 설명 (varchar(500))
+  price: number;           // 기본 가격 (int4, 원 단위)
+  discountPrice?: number;  // 할인 가격 (int4, nullable)
+  cold: boolean;           // 차가운 음료 제공 여부
+  hot: boolean;            // 따뜻한 음료 제공 여부
+  categoryId?: number;     // 카테고리 FK (bigint)
+  status: string;          // 메뉴 상태 (common_code.id 참조)
+  marketing: string[];     // 마케팅 태그 (_text, common_code.id 참조)
+  orderNo: number;         // 정렬 순서 (int4)
+}
+```
+
+#### MenuItemDisplay (프론트엔드 전용)
+```typescript
+interface MenuItemDisplay {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discountPrice?: number;
+  image: string;           // 첫 번째 이미지 URL
+  images: MenuImage[];     // 전체 이미지 목록
+  category: string;        // 카테고리명 (조인 후)
+  categoryId?: number;
+  tags: string[];          // 마케팅 태그 (조인 후 이름 배열)
+  available: boolean;      // status 기반 계산
+  popular: boolean;        // marketing에서 "인기" 태그 포함 여부
+  cold: boolean;
+  hot: boolean;
+  orderNo: number;
+}
+```
+
+#### CategoryInfo (카테고리)
+```typescript
+interface CategoryInfo extends BaseEntity {
+  id: number;              // 고유 식별자 (bigint)
+  name: string;            // 카테고리 이름 (varchar(255))
+  orderNo: number;         // 정렬 순서 (int4)
+  status: string;          // 상태 (common_code.id 참조)
+}
+```
+
+#### MenuImage (이미지)
+```typescript
+interface MenuImage {
+  fileUuid: string;        // 파일 UUID (varchar(255), PK)
+  fileName: string;        // 파일명 (varchar(255))
+  menuId: number;          // 메뉴 FK (bigint)
+  menuType: string;        // 메뉴 타입 구분자 (varchar(255))
+  ordering: number;        // 이미지 정렬 순서 (int4)
+  createdBy: string;
+  createdDate: Date;
+}
+```
+
+#### CommonCode (공통코드)
+```typescript
+interface CommonCode extends BaseEntity {
+  id: string;              // 코드 ID (varchar(50), PK)
+  name: string;            // 코드 이름 (varchar(100))
+  value: string;           // 코드 값 (varchar(100), unique)
+  description?: string;    // 코드 설명 (text)
+  extraValue?: string;     // 추가 값 (text)
+  parentId?: string;       // 부모 코드 ID (varchar(50), self FK)
+  sortOrder: number;       // 정렬 순서 (int4)
+  delYn: string;           // 삭제 여부 (varchar(1), 'Y' | 'N')
 }
 ```
 
 #### CartItem
 ```typescript
-interface CartItem extends MenuItem {
-  quantity: number;        // 수량
+interface CartItem extends MenuItemDisplay {
+  quantity: number;        // 수량 (최소 1)
 }
 ```
 
-#### Order
+#### Order (향후 DB 연동)
 ```typescript
 interface Order {
+  id: string;              // 주문 UUID
   items: CartItem[];       // 주문 아이템 목록
-  totalPrice: number;      // 총 금액
+  totalPrice: number;      // 총 금액 (할인가 우선)
   timestamp: Date;         // 주문 시간
   status: 'pending' | 'confirmed' | 'completed';
 }
@@ -326,11 +400,12 @@ interface Order {
 ```typescript
 interface CartStore {
   items: CartItem[];
-  addItem: (item: MenuItem) => void;
-  removeItem: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
+  addItem: (item: MenuItemDisplay) => void;
+  removeItem: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
-  getTotalPrice: () => number;
+  getTotalPrice: () => number;  // 할인가 우선 적용
+  getTotalItems: () => number;
 }
 ```
 
