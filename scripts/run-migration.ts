@@ -72,10 +72,10 @@ async function runMigration() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'apikey': supabaseServiceKey,
+              'apikey': supabaseServiceKey!,
               'Authorization': `Bearer ${supabaseServiceKey}`,
               'Prefer': 'return=minimal'
-            },
+            } as HeadersInit,
             body: JSON.stringify({ sql: statement + ';' })
           });
 
@@ -108,10 +108,10 @@ async function runMigration() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'apikey': supabaseServiceKey,
+              'apikey': supabaseServiceKey!,
               'Authorization': `Bearer ${supabaseServiceKey}`,
               'Prefer': 'return=minimal'
-            },
+            } as HeadersInit,
             body: JSON.stringify({ sql: statement + ';' })
           });
 

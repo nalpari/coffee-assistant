@@ -20,9 +20,9 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
     <div className="flex gap-4 py-4 border-b last:border-b-0">
       {/* 이미지 */}
       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-        {item.imageUrl ? (
+        {item.image ? (
           <Image
-            src={item.imageUrl}
+            src={item.image}
             alt={item.name}
             fill
             className="object-cover"
@@ -40,9 +40,9 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <h3 className="font-semibold text-sm leading-tight">{item.name}</h3>
-            {item.badge && (
+            {item.tags && item.tags.length > 0 && (
               <Badge variant="secondary" className="mt-1 text-xs">
-                {item.badge}
+                {item.tags[0]}
               </Badge>
             )}
           </div>

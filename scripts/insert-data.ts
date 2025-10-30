@@ -102,9 +102,9 @@ async function insertData() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabaseServiceKey,
+          'apikey': supabaseServiceKey!,
           'Authorization': `Bearer ${supabaseServiceKey}`
-        },
+        } as HeadersInit,
         body: JSON.stringify({ query: menuSql })
       });
 
@@ -134,9 +134,9 @@ async function insertData() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': supabaseServiceKey,
+          'apikey': supabaseServiceKey!,
           'Authorization': `Bearer ${supabaseServiceKey}`
-        },
+        } as HeadersInit,
         body: JSON.stringify({ query: imageSql })
       });
 

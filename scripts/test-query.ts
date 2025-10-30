@@ -132,7 +132,7 @@ async function testQuery() {
     console.log('\n📊 Sample results:');
     fullData?.forEach((item, idx) => {
       console.log(`\n${idx + 1}. ${item.name} (ID: ${item.id})`);
-      console.log(`   Category: ${item.category?.name || 'N/A'} (ID: ${item.category_id})`);
+      console.log(`   Category: ${Array.isArray(item.category) && item.category.length > 0 ? item.category[0].name : 'N/A'} (ID: ${item.category_id})`);
       console.log(`   Images: ${Array.isArray(item.image) ? item.image.length : 0}`);
       if (Array.isArray(item.image) && item.image.length > 0) {
         console.log(`   First image: ${item.image[0].file_uuid}`);
