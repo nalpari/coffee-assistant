@@ -1,0 +1,77 @@
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('f57febd1-9a45-4d78-a328-eef009bafc6a.png','hc_super','2021-05-25 10:05:39.067','말차라떼(I).jpg',172,'menu',1),
+	 ('e6cb742d-f964-45c3-808a-5589d5908a82.png','hc_super','2021-05-25 10:02:00.643','유자티(I).jpg',218,'menu',1),
+	 ('f7359fe0-2dad-457e-8c64-c2a06aa36ff0.png','hc_super','2021-05-25 10:02:55.977','얼그레이(I).jpg',216,'menu',1),
+	 ('999debbb-c0a2-4ccc-9959-3fd76504a8dc.png','hc_super','2021-07-25 15:21:12.833','02아메리카노 ICE.png',152,'menu',1),
+	 ('fefcfad5-10f7-4f30-997f-1412d1354ce7.png','hc_super','2021-07-25 15:22:12.25','04꿀아메리카노 ICE.png',153,'menu',1),
+	 ('f09adbe2-5822-41ce-8628-d1c04c365666.png','hc_super','2021-07-25 15:24:16.38','01아메리카노 HOT.png',151,'menu',1),
+	 ('fc24dbde-4cfa-4f7e-a543-ad76ea82d52a.png','hc_super','2021-07-25 15:25:37.13','06헤이즐넛)바닐라아메리카노 ICE.png',154,'menu',1),
+	 ('432137c9-d58b-4c5e-9aeb-122a720653b6.png','hc_super','2021-07-25 15:25:53.343','06헤이즐넛)바닐라아메리카노 ICE.png',155,'menu',1),
+	 ('86efdef7-f226-4e2e-910d-b82365b90dcc.png','hc_super','2021-07-25 15:28:28.493','08카페라떼 HOT.png',156,'menu',1),
+	 ('74ae654c-7f38-4aea-a707-663099116dd7.png','hc_super','2021-07-25 15:29:06.01','13바닐라라떼 ICE.png',157,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('db035215-3897-4f39-b88b-7ec2187d79d1.png','hc_super','2021-07-25 15:29:23.893','15헤이즐넛라떼 ICE.png',158,'menu',1),
+	 ('f5a65fcf-4e9c-485a-b8e5-cecf70382127.png','hc_super','2021-07-25 15:30:02.37','21연유라떼 ICE.png',159,'menu',1),
+	 ('a8cb4520-0d53-4039-82b7-a254b058510f.png','hc_super','2021-07-25 15:31:26.153','25티마리수라떼.png',161,'menu',1),
+	 ('f447f145-7dbb-4e37-a9dc-e79178e85d1e.png','hc_super','2021-07-25 15:32:10.003','11카푸치노 ICE.png',162,'menu',1),
+	 ('8832e7b6-ac17-45b7-a4cc-cfb8700d044f.png','hc_super','2021-07-25 15:33:17.267','24큐브라떼.png',165,'menu',1),
+	 ('406d0633-86a2-4c3a-b935-7d16a1295fed.png','hc_super','2021-07-25 15:33:30.673','17카라멜마끼아또 ICE.png',164,'menu',1),
+	 ('2f4fa559-dd6a-4aff-90ab-1438d3aae984.png','hc_super','2021-07-25 15:33:43.133','19카페모카 ICE.png',163,'menu',1),
+	 ('2ed51061-c571-47c2-a0fc-f6064395f068.png','hc_super','2021-07-25 15:42:41.433','07힘이나커피.png',166,'menu',1),
+	 ('450f03be-4500-4e19-8dc4-324976032f99.png','hc_super','2021-07-25 15:46:30.49','23민트카페모카 ICE.png',167,'menu',1),
+	 ('b2f1569e-c8c2-49fe-a4c4-487a92d7eab1.png','hc_super','2021-07-25 15:49:17.16','26달고나라떼.png',168,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('904c3293-7a39-4fd7-a0d7-ad47cdcbed18.png','hc_super','2021-07-25 15:50:23.877','01콜드브루.png',225,'menu',1),
+	 ('e28860d9-3d5a-4e30-b08a-1eaf1617141d.png','hc_super','2021-07-25 15:51:15.72','03크림콜드브루.png',226,'menu',1),
+	 ('eb14433f-7fbf-4030-a6ab-eedc53ac15da.png','hc_super','2021-07-25 15:52:20.283','02콜드브루라떼.png',227,'menu',1),
+	 ('5085a927-97bf-4f90-83d8-d3f56bf67608.png','hc_super','2021-07-25 15:58:11.4','02초코라떼 ICE.png',178,'menu',1),
+	 ('da968cc7-1a79-4470-af67-7d549ebc9b83.png','hc_super','2021-07-25 15:59:08.35','04녹차라떼 ICE.png',179,'menu',1),
+	 ('ce20f342-7e42-4f0b-95c1-c344f54dfa7b.png','hc_super','2021-07-25 15:59:44.63','06오곡라떼 ICE.png',171,'menu',1),
+	 ('23c17760-0232-4076-aaae-b3bc85fa125e.png','hc_super','2021-07-25 16:00:49.08','07민트초코라떼 HOT.png',180,'menu',1),
+	 ('9e5b9d26-4059-4ac2-b71a-fcdf7c45a365.png','hc_super','2021-07-25 16:02:33.267','10홍차라떼 ICE.png',181,'menu',1),
+	 ('06a517ca-92aa-4e63-b790-66859f0a04fa.png','hc_super','2021-07-25 16:03:08.547','12고구마라떼 ICE.png',170,'menu',1),
+	 ('984f96a3-12a0-4072-a224-e1113fd33782.png','hc_super','2021-07-25 16:04:40.75','14토피넛라떼 ICE.png',182,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('640e9056-4383-49ff-8642-c4ca0c356003.png','hc_super','2021-07-25 16:05:11.567','15딸기라떼.png',173,'menu',1),
+	 ('e8bacc8e-3718-4112-a8be-1cedf7b04ff9.png','hc_super','2021-07-25 16:05:40.5','16오레오초코라떼.png',174,'menu',1),
+	 ('59a3119d-c6a4-4471-ab6b-f644b3e714f4.png','hc_super','2021-07-25 16:06:37.66','19흑당버블밀크티.png',176,'menu',1),
+	 ('b5ab233e-a174-4b23-81a5-916928cc5396.png','hc_super','2021-07-25 16:06:49.463','20흑당버블그린티.png',177,'menu',1),
+	 ('cb7c4f6a-cbbf-4d79-8496-7065535e755a.png','hc_super','2021-07-25 16:07:53.113','18흑당버블티.png',183,'menu',1),
+	 ('2c980373-fa1f-482e-8087-aa91e0e37046.png','hc_super','2021-07-25 16:52:14.563','01흑임자크림라떼 (2).png',184,'menu',1),
+	 ('fcf19e79-8d0d-4ff8-9cb9-293c7d0ce340.png','hc_super','2021-07-25 16:53:39.4','03힘나쇼(뱅쇼) (2).png',185,'menu',1),
+	 ('73fe1527-1d62-4288-8a0d-c7f3a6e0b6fc.png','hc_super','2021-07-25 16:54:27.597','02힘나리아(상그리아) (2).png',186,'menu',1),
+	 ('6800aec7-3134-4604-89e5-d3558dca4f01.png','hc_super','2021-07-25 16:55:15.18','04월남커피(코코넛커피스무디) (2).png',187,'menu',1),
+	 ('b7466546-5571-4fb3-9040-6107bc90a19c.png','hc_super','2021-07-25 16:59:40.03','21딸기주스.png',209,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('8214f4fc-b987-40d9-9a57-c7275b2a03fa.png','hc_super','2021-07-25 16:59:55.183','22딸기바나나주스.png',208,'menu',1),
+	 ('c5e92630-fb9b-444e-a65d-ebd36a0b93ac.png','hc_super','2021-07-25 17:00:32.787','14딸기요거트스무디.png',206,'menu',1),
+	 ('9959cb3b-9e59-4022-b193-dc125a28ff2a.png','hc_super','2021-07-25 17:01:34.85','01밀크퐁프라페.png',193,'menu',1),
+	 ('51221a1e-675d-490a-aff9-4a7c2c7ee42e.png','hc_super','2021-07-25 17:02:02.53','12민트초코프라페.png',204,'menu',1),
+	 ('34f02a82-5ebc-4435-86dc-1e95cba2f500.png','hc_super','2021-07-25 17:02:16.423','10녹차프라페.png',202,'menu',1),
+	 ('dfecbf7b-0695-4c0b-bb85-e540e3f37462.png','hc_super','2021-07-25 17:04:23.29','24오곡바나나주스.png',217,'menu',1),
+	 ('6f494f97-00b0-4fa6-8bf4-725d9d4cce66.png','hc_super','2021-07-25 17:10:31','02딸기퐁프라페.png',194,'menu',1),
+	 ('33922978-ee46-49f5-8322-0cde98d8f339.png','hc_super','2021-07-25 17:11:49.793','03바나나퐁프라페.png',195,'menu',1),
+	 ('e06f2145-b0b6-4177-b2f5-2b0bbf2ba334.png','hc_super','2021-07-25 17:13:48.653','04오곡퐁프라페.png',196,'menu',1),
+	 ('c54e5963-6b2f-4246-86b1-cb3f3e7504c8.png','hc_super','2021-07-25 17:14:59.13','05바나나프라페.png',197,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('5fbd0ae6-2d44-42b4-a34a-e4f7dbf1d3cc.png','hc_super','2021-07-25 17:42:54.283','06딸기바나나프라페.png',198,'menu',1),
+	 ('ce0ae6c1-b48d-487f-a34d-8ad488323ad8.png','hc_super','2021-07-25 17:43:49.097','07초코바나나프라페.png',199,'menu',1),
+	 ('5feef89f-b9d3-444f-8eb4-3aac913614b2.png','hc_super','2021-07-25 17:44:44.923','08쿠키프라페 (1).png',200,'menu',1),
+	 ('e2c89538-31c8-49ee-9e06-d8986d527d59.png','hc_super','2021-07-25 17:45:39.867','09초코프라페 (1).png',201,'menu',1),
+	 ('62cf7d74-7291-4a5e-9d0f-ec032a1f735b.png','hc_super','2021-07-25 17:46:27.403','11커피프라페.png',203,'menu',1),
+	 ('d4bd02e8-50ba-48aa-852b-d09e2dc340e2.png','hc_super','2021-07-25 17:48:21.4','13플레인요거트스무디.png',205,'menu',1),
+	 ('0deaabb1-8b73-4632-9565-7a503bf7e6d2.png','hc_super','2021-07-25 17:49:29.04','15망고요거트스무디 (1).png',190,'menu',1),
+	 ('dc862256-ee60-426e-9878-3e30c549f6ca.png','hc_super','2021-07-25 17:49:55.953','16블루베리요거트스무디.png',207,'menu',1),
+	 ('46a820f7-7f43-4d09-89ab-a26bd47dbe02.png','hc_super','2021-07-25 17:51:05.853','01레몬에이드.png',211,'menu',1),
+	 ('fc3ff709-2dec-4903-8dce-8070ee00e5b2.png','hc_super','2021-07-25 17:51:30.223','02자몽에이드.png',220,'menu',1);
+INSERT INTO image (file_uuid,created_by,created_date,file_name,"?column?",menu_type,"ordering") VALUES
+	 ('0edd0eea-4070-4b3a-93ff-757ed6f23683.png','hc_super','2021-07-25 17:52:02.65','03청포도에이드.png',222,'menu',1),
+	 ('227f0fc4-e642-4ed0-b72e-6c25b4bcdd70.png','hc_super','2021-07-25 17:52:20.42','04복숭아아이스티.png',215,'menu',1),
+	 ('8f07797f-42fd-4219-bfb6-90f0ee9b8b90.png','hc_super','2021-07-25 17:52:50.907','05라임모히또.png',210,'menu',1),
+	 ('96907373-2053-4789-90a2-06146521f389.png','hc_super','2021-07-25 17:53:13.83','08체리콕.png',223,'menu',1),
+	 ('ec5199e3-7ab9-42fa-8e88-603f9d12caba.png','hc_super','2021-07-25 17:53:58.26','09힘이나에이드.png',224,'menu',1),
+	 ('bebb6cd6-af22-4f05-bee1-bb87ee090c48.png','hc_super','2021-07-25 17:55:19.893','29레몬진저티 ICE.png',212,'menu',1),
+	 ('62b4af39-7142-4c16-96c6-6cc19394b51f.png','hc_super','2021-07-25 17:55:34.027','27사과유자티 ICE.png',214,'menu',1),
+	 ('beb734b3-3a4b-41e4-baa0-1a5f304e8c56.png','hc_super','2021-07-25 17:57:07.837','25레몬차 ICE.png',213,'menu',1),
+	 ('fbbfc91a-5336-4371-a628-68f89487ef9e.png','hc_super','2021-07-25 17:57:29.39','31자몽블랙티 ICE.png',219,'menu',1),
+	 ('37478efe-c638-4474-b51b-9284ec8b7db5.png','hc_super','2021-07-25 17:58:06.283','23자몽차 ICE.png',221,'menu',1);

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import type { MenuItemDisplay } from '@/types/menu';
@@ -11,6 +12,9 @@ interface MenuCardProps {
 }
 
 export function MenuCard({ item, onClick }: MenuCardProps) {
+  const [imageError, setImageError] = useState(false);
+  const hasValidImage = item.image && item.image.trim() !== '';
+
   return (
     <Card
       onClick={onClick}
@@ -21,14 +25,24 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
     >
       <CardContent className="p-0">
         {/* Image */}
-        <div className="relative aspect-square w-full overflow-hidden rounded-t-xl">
-          <Image
-            src={item.image}
-            alt={item.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          />
+        <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-muted">
+          {hasValidImage && !imageError ? (
+            <Image
+              src={item.image}
+              alt={item.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center">
+              <div className="text-center">
+                <div className="text-4xl mb-2">☕</div>
+                <p className="text-sm text-muted-foreground">이미지 준비중</p>
+              </div>
+            </div>
+          )}
           {/* Badges */}
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             {item.popular && (

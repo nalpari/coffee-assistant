@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Header } from '@/components/layout/Header';
 import { CategoryTabs } from '@/components/menu/CategoryTabs';
 import { MenuGrid } from '@/components/menu/MenuGrid';
-import { CartButton } from '@/components/cart/CartButton';
 import { CartSheet } from '@/components/cart/CartSheet';
+import { LoadingSpinner } from '@/components/menu/LoadingSpinner';
 import { useCartStore } from '@/store/cart-store';
-import { mockMenuItems } from '@/data/mock-menu';
+import { useInfiniteScroll } from '@/hooks/use-infinite-scroll';
+import { useMenuInfiniteQuery } from '@/hooks/use-menu-query';
 import type { MenuItemDisplay } from '@/types/menu';
 
 export default function HomePage() {
@@ -15,45 +16,125 @@ export default function HomePage() {
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  const { getTotalItems, addItem } = useCartStore();
+  const { items, addItem } = useCartStore();
 
-  // 필터링된 메뉴 아이템
-  const filteredItems = mockMenuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
-    return matchesSearch && matchesCategory;
+  // 장바구니 총 아이템 개수 계산
+  const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  // API에서 메뉴 데이터 조회 (무한 스크롤)
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useMenuInfiniteQuery({
+    categoryId: selectedCategory,
+    searchQuery,
+    pageSize: 8,
+  });
+
+  // 모든 페이지의 데이터를 하나의 배열로 합치기
+  const displayedItems = useMemo(() => {
+    return data?.pages.flatMap((page) => page.data) ?? [];
+  }, [data]);
+
+  // 다음 페이지 로드 함수
+  const loadMore = () => {
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  // 무한 스크롤 훅 사용
+  const { observerRef } = useInfiniteScroll({
+    onLoadMore: loadMore,
+    hasMore: hasNextPage ?? false,
+    isLoading: isFetchingNextPage,
   });
 
   const handleItemClick = (item: MenuItemDisplay) => {
-    // 장바구니에 아이템 추가
+    // 장바구니에 아이템만 추가 (모달은 열지 않음)
     addItem(item);
-    // 장바구니 Sheet 열기
+  };
+
+  const handleCartClick = () => {
+    // 헤더의 장바구니 아이콘 클릭 시 모달 열기
     setIsCartOpen(true);
+  };
+
+  // 검색어나 카테고리가 변경되면 React Query가 자동으로 refetch
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+  };
+
+  const handleCategoryChange = (category: number | 'all') => {
+    setSelectedCategory(category);
   };
 
   return (
     <div className="min-h-screen bg-background">
       <Header
         searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        onSearchChange={handleSearchChange}
+        cartItemCount={cartItemCount}
+        onCartClick={handleCartClick}
       />
 
       <CategoryTabs
         selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
+        onCategoryChange={handleCategoryChange}
       />
 
       <main className="container mx-auto pb-24">
-        <MenuGrid
-          items={filteredItems}
-          onItemClick={handleItemClick}
-        />
-      </main>
+        {/* 초기 로딩 */}
+        {isLoading && <LoadingSpinner />}
 
-      <CartButton
-        itemCount={getTotalItems()}
-        onClick={() => setIsCartOpen(true)}
-      />
+        {/* 에러 메시지 */}
+        {isError && (
+          <div className="flex items-center justify-center py-16">
+            <p className="text-red-500">
+              데이터를 불러오는 중 오류가 발생했습니다: {error?.message}
+            </p>
+          </div>
+        )}
+
+        {/* 메뉴 그리드 */}
+        {!isLoading && !isError && (
+          <>
+            <MenuGrid
+              items={displayedItems}
+              onItemClick={handleItemClick}
+            />
+
+            {/* 다음 페이지 로딩 스피너 */}
+            {isFetchingNextPage && <LoadingSpinner />}
+
+            {/* Intersection Observer 감지 요소 */}
+            {hasNextPage && !isFetchingNextPage && (
+              <div ref={observerRef} className="h-10" aria-hidden="true" />
+            )}
+
+            {/* 모든 데이터 로드 완료 메시지 */}
+            {!hasNextPage && displayedItems.length > 0 && (
+              <div className="flex items-center justify-center py-8">
+                <p className="text-sm text-gray-500">
+                  모든 메뉴를 불러왔습니다 ({displayedItems.length}개)
+                </p>
+              </div>
+            )}
+
+            {/* 검색 결과 없음 */}
+            {displayedItems.length === 0 && (
+              <div className="flex items-center justify-center py-16">
+                <p className="text-gray-500">검색 결과가 없습니다.</p>
+              </div>
+            )}
+          </>
+        )}
+      </main>
 
       <CartSheet
         open={isCartOpen}

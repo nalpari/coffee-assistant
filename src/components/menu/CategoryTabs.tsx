@@ -1,6 +1,6 @@
 'use client';
 
-import { Coffee, Droplet, Star, IceCream } from 'lucide-react';
+import { Coffee, Droplet, Star, IceCream, LayoutGrid } from 'lucide-react';
 
 interface CategoryTabsProps {
   selectedCategory: number | 'all';
@@ -9,7 +9,7 @@ interface CategoryTabsProps {
 
 // 실제 DB 카테고리 데이터 기반
 const categories = [
-  { id: 'all' as const, name: '전체', Icon: null },
+  { id: 'all' as const, name: '전체', Icon: LayoutGrid },
   { id: 1, name: 'COFFEE', Icon: Coffee },
   { id: 2, name: 'NON-COFFEE', Icon: Droplet },
   { id: 3, name: 'SIGNATURE', Icon: Star },
@@ -20,9 +20,9 @@ const categories = [
 
 export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTabsProps) {
   return (
-    <div className="sticky top-16 z-40 w-full border-b bg-background">
-      <div className="container px-4 py-3">
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide">
+    <div className="sticky top-16 z-40 w-full border-b bg-background backdrop-blur supports-[backdrop-filter]:bg-background">
+      <div className="container px-4 py-6">
+        <div className="flex justify-center gap-3 overflow-x-auto scrollbar-hide">
           {categories.map(({ id, name, Icon }) => {
             const isActive = selectedCategory === id;
             return (
@@ -30,16 +30,18 @@ export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTab
                 key={id}
                 onClick={() => onCategoryChange(id)}
                 className={`
-                  flex items-center gap-2 px-4 py-2 rounded-full
-                  whitespace-nowrap transition-colors touchable
+                  flex items-center justify-center gap-2 rounded-full
+                  transition-all duration-300 ease-in-out
+                  px-4 py-3 sm:px-5 sm:py-3
+                  cursor-pointer
                   ${isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card hover:bg-muted'
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/50 scale-105'
+                    : 'bg-white border border-gray-200 hover:border-orange-300 hover:shadow-md hover:scale-105 text-gray-700 hover:text-orange-600'
                   }
                 `}
               >
-                {Icon && <Icon className="h-4 w-4" />}
-                <span className="font-medium">{name}</span>
+                {Icon && <Icon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                <span className="font-medium hidden sm:inline whitespace-nowrap">{name}</span>
               </button>
             );
           })}
