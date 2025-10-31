@@ -60,7 +60,7 @@ export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTab
             aria-label="선택된 카테고리"
           >
             <p className="text-sm font-semibold text-primary tracking-wide">
-              선택됨: {selectedCategoryInfo.name}
+              {selectedCategoryInfo.name}
             </p>
           </div>
         )}
