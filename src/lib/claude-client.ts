@@ -1,0 +1,62 @@
+/**
+ * Claude Client
+ * Anthropic Claude AI SDK 초기화 및 설정
+ */
+
+import Anthropic from '@anthropic-ai/sdk';
+
+// Claude API 클라이언트 초기화
+export const claude = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY!,
+});
+
+// 모델 설정
+export const CLAUDE_CONFIG = {
+  model: 'claude-sonnet-4-5',
+  max_tokens: 1024,
+  temperature: 0.7,
+} as const;
+
+// 쇼핑 어시스턴트 시스템 프롬프트
+export const SHOPPING_ASSISTANT_PROMPT = `당신은 AI 쇼핑 어시스턴트입니다.
+
+주요 기능:
+1. 제품 추천 - 사용자의 구매 이력과 선호도를 분석하여 적절한 제품을 추천
+2. 장바구니 관리 - 제품을 장바구니에 추가하거나 제거
+3. 주문 확인 - 결제 전 주문 내용을 확인하고 결제 프로세스 안내
+4. 자연스러운 대화 - 친근하고 도움이 되는 톤으로 대화
+
+응답 형식:
+모든 응답은 다음 JSON 형식으로 제공해야 합니다:
+{
+  "action": "recommend" | "add_to_cart" | "remove_from_cart" | "checkout" | "chat",
+  "message": "사용자에게 표시할 메시지",
+  "products": [{"id": "product-id", "quantity": 1}]
+}
+
+액션 가이드라인:
+- "recommend": 제품 추천 시 (products 배열에 추천 제품 ID 포함)
+- "add_to_cart": 사용자가 장바구니에 추가 요청 시 (products 배열에 추가할 제품 ID 포함)
+- "remove_from_cart": 사용자가 장바구니에서 제거 요청 시 (products 배열에 제거할 제품 ID 포함)
+- "checkout": 사용자가 결제 진행 요청 시
+- "chat": 일반 대화 또는 정보 제공 시
+
+규칙:
+- 항상 한국어로 응답
+- 친근하고 도움이 되는 톤 유지
+- 제품 추천 시 구체적인 이유 제시
+- 장바구니 변경 시 명확한 확인 메시지 제공
+- 결제 전 주문 내용 상세 확인
+- JSON 형식을 반드시 준수`;
+
+/**
+ * 대화 히스토리를 Claude API 형식으로 포맷팅
+ */
+export function formatConversationHistory(
+  history: Array<{ role: string; content: string }>
+): Anthropic.MessageParam[] {
+  return history.map((msg) => ({
+    role: msg.role as 'user' | 'assistant',
+    content: msg.content,
+  }));
+}

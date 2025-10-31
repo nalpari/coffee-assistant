@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { ShoppingCart, Trash2 } from 'lucide-react';
 import {
   Sheet,
@@ -11,6 +13,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { CartItem } from './CartItem';
 import { useCartStore } from '@/store/cart-store';
+import { createOrder } from '@/app/actions/order';
+import { processPayment } from '@/app/actions/payment';
 
 interface CartSheetProps {
   open: boolean;
@@ -18,14 +22,65 @@ interface CartSheetProps {
 }
 
 export function CartSheet({ open, onOpenChange }: CartSheetProps) {
+  const router = useRouter();
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems } = useCartStore();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
 
-  const handleCheckout = () => {
-    // Phase 4에서 결제 로직 구현 예정
-    alert('결제 기능은 Phase 4에서 구현됩니다.');
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+
+    setIsProcessing(true);
+
+    try {
+      // 1. 주문 생성 (MVP: 고정된 고객 정보 사용)
+      const orderResult = await createOrder({
+        customerName: 'Guest User',
+        customerPhone: '010-0000-0000',
+        customerEmail: 'guest@example.com',
+        items: items.map(item => ({
+          menuId: item.id,
+          menuName: item.name,
+          menuPrice: item.discountPrice ?? item.price,
+          quantity: item.quantity,
+        })),
+        totalAmount: totalPrice,
+        discountAmount: 0,
+      });
+
+      if (!orderResult.success || !orderResult.orderId) {
+        alert(orderResult.error || '주문 생성 중 오류가 발생했습니다.');
+        return;
+      }
+
+      // 2. 결제 처리 (MVP: 항상 성공)
+      const paymentResult = await processPayment({
+        orderId: orderResult.orderId,
+        paymentMethod: 'card', // MVP: 신용카드 고정
+        amount: totalPrice,
+      });
+
+      if (!paymentResult.success) {
+        alert(paymentResult.error || '결제 처리 중 오류가 발생했습니다.');
+        return;
+      }
+
+      // 3. 장바구니 비우기
+      clearCart();
+
+      // 4. 모달 닫기
+      onOpenChange(false);
+
+      // 5. 주문 완료 페이지로 이동
+      router.push(`/orders/${orderResult.orderId}/complete`);
+    } catch (error) {
+      console.error('결제 처리 오류:', error);
+      alert('주문 처리 중 오류가 발생했습니다.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -110,8 +165,9 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
               size="lg"
               className="w-full"
               onClick={handleCheckout}
+              disabled={isProcessing}
             >
-              {totalPrice.toLocaleString()}원 주문하기
+              {isProcessing ? '처리 중...' : `${totalPrice.toLocaleString()}원 주문하기`}
             </Button>
           </div>
         )}

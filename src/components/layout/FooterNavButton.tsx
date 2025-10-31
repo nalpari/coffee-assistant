@@ -1,24 +1,25 @@
 'use client';
 
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
 
 interface FooterNavButtonProps {
   icon: LucideIcon;
   label: string;
-  href: string; // Phase 2에서 사용 예정
+  href: string;
   isActive: boolean;
 }
 
 export function FooterNavButton({
   icon: Icon,
   label,
-  href: _href, // Phase 2에서 사용 예정 (unused prefix로 lint 경고 회피)
+  href,
   isActive,
 }: FooterNavButtonProps) {
   return (
-    <button
-      type="button"
+    <Link
+      href={href}
       className="flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[56px] transition-colors duration-200"
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
@@ -37,6 +38,6 @@ export function FooterNavButton({
       >
         {label}
       </span>
-    </button>
+    </Link>
   );
 }

@@ -2,9 +2,9 @@ import { notFound } from 'next/navigation'
 import { getOrderById } from '@/app/actions/order'
 import { getOrderStatusLabel } from '@/lib/order-utils'
 import { getPaymentMethodLabel } from '@/lib/payment-utils'
+import { formatPrice } from '@/lib/price-utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { formatPrice } from '@/hooks/useCart'
 
 export default async function OrderCompletePage({
   params,
@@ -21,7 +21,7 @@ export default async function OrderCompletePage({
   const payment = order.payments?.[0]
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pb-28">
       <div className="max-w-2xl mx-auto">
         {/* 성공 아이콘 및 헤더 */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6">

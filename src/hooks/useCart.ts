@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { formatPrice } from '@/lib/price-utils'
 
 // =============================================
 // 타입 정의
@@ -159,9 +160,5 @@ export function cartItemsToOrderItems(items: CartItem[]) {
   }))
 }
 
-/**
- * 금액을 한국 원화 형식으로 포맷
- */
-export function formatPrice(price: number): string {
-  return `${price.toLocaleString('ko-KR')}원`
-}
+// formatPrice는 @/lib/price-utils에서 import하여 사용
+export { formatPrice }

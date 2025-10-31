@@ -2,7 +2,8 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useCart, formatPrice, cartItemsToOrderItems } from '@/hooks/useCart'
+import { useCart, cartItemsToOrderItems } from '@/hooks/useCart'
+import { formatPrice } from '@/lib/price-utils'
 import { createOrder } from '@/app/actions/order'
 import { processPayment } from '@/app/actions/payment'
 import { Button } from '@/components/ui/button'

@@ -1,11 +1,11 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { Home, Receipt, Sparkles, Ticket, User } from 'lucide-react';
 import { FooterNavButton } from './FooterNavButton';
 
 export function FooterNavigation() {
-  // Phase 1: Hard-coded active state (home)
-  const currentPath = '/'; // Phase 2: usePathname()
+  const pathname = usePathname();
 
   const navItems = [
     { icon: Home, label: '홈', href: '/' },
@@ -24,7 +24,7 @@ export function FooterNavigation() {
             icon={item.icon}
             label={item.label}
             href={item.href}
-            isActive={item.href === currentPath}
+            isActive={pathname === item.href}
           />
         ))}
       </nav>
