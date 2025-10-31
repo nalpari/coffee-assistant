@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { CategoryTabs } from '@/components/menu/CategoryTabs';
 import { MenuGrid } from '@/components/menu/MenuGrid';
@@ -12,6 +13,7 @@ import { useMenuInfiniteQuery } from '@/hooks/use-menu-query';
 import type { MenuItemDisplay } from '@/types/menu';
 
 export default function HomePage() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -56,7 +58,12 @@ export default function HomePage() {
   });
 
   const handleItemClick = (item: MenuItemDisplay) => {
-    // 장바구니에 아이템만 추가 (모달은 열지 않음)
+    // 상품 카드 클릭 시 상세 페이지로 이동
+    router.push(`/products/${item.id}`);
+  };
+
+  const handleAddToCart = (item: MenuItemDisplay) => {
+    // 담기 버튼 클릭 시 장바구니에 추가
     addItem(item);
   };
 
@@ -107,6 +114,7 @@ export default function HomePage() {
             <MenuGrid
               items={displayedItems}
               onItemClick={handleItemClick}
+              onAddToCart={handleAddToCart}
             />
 
             {/* 다음 페이지 로딩 스피너 */}

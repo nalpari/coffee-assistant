@@ -6,9 +6,10 @@ import type { MenuItemDisplay } from '@/types/menu';
 interface MenuGridProps {
   items: MenuItemDisplay[];
   onItemClick: (item: MenuItemDisplay) => void;
+  onAddToCart: (item: MenuItemDisplay) => void;
 }
 
-export function MenuGrid({ items, onItemClick }: MenuGridProps) {
+export function MenuGrid({ items, onItemClick, onAddToCart }: MenuGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -24,6 +25,10 @@ export function MenuGrid({ items, onItemClick }: MenuGridProps) {
           key={item.id}
           item={item}
           onClick={() => onItemClick(item)}
+          onAddToCart={(e) => {
+            e.stopPropagation();
+            onAddToCart(item);
+          }}
         />
       ))}
     </div>

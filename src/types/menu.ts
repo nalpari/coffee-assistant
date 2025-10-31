@@ -215,8 +215,8 @@ export interface MenuItemDisplay {
   /** @dbColumn menu.discount_price */
   discountPrice?: number;
 
-  /** @computed 첫 번째 image.file_name (ordering ASC LIMIT 1) */
-  image: string;
+  /** @computed 첫 번째 image.file_name (ordering ASC LIMIT 1) | null if no image */
+  image: string | null;
 
   /** @computed 전체 image 목록 (ordering ASC) */
   images: MenuImage[];
