@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { Minus, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -13,23 +14,31 @@ interface CartItemProps {
 }
 
 export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
+  const [imageError, setImageError] = useState(false);
   const displayPrice = item.discountPrice ?? item.price;
   const hasDiscount = item.discountPrice !== null && item.discountPrice !== undefined;
+
+  // 이미지 에러 핸들링
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   return (
     <div className="flex gap-4 py-4 border-b last:border-b-0">
       {/* 이미지 */}
       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-        {item.image ? (
+        {item.image !== null && item.image.trim() !== '' && !imageError ? (
           <Image
-            src={item.image}
+            src={item.image!}
             alt={item.name}
             fill
             className="object-cover"
+            onError={handleImageError}
+            unoptimized={true}
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-            <span className="text-xs">No Image</span>
+            <span className="text-2xl">☕</span>
           </div>
         )}
       </div>

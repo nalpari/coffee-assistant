@@ -2,18 +2,32 @@
 
 import Image from 'next/image';
 import { useState } from 'react';
+import { ShoppingCart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import type { MenuItemDisplay } from '@/types/menu';
 
 interface MenuCardProps {
   item: MenuItemDisplay;
   onClick: () => void;
+  onAddToCart: (e: React.MouseEvent) => void;
 }
 
-export function MenuCard({ item, onClick }: MenuCardProps) {
+export function MenuCard({ item, onClick, onAddToCart }: MenuCardProps) {
   const [imageError, setImageError] = useState(false);
-  const hasValidImage = item.image && item.image.trim() !== '';
+  const hasValidImage = item.image !== null && item.image.trim() !== '';
+
+  // 이벤트 버블링 방지
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart(e);
+  };
+
+  // 이미지 에러 핸들링
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   return (
     <Card
@@ -28,12 +42,14 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
         <div className="relative aspect-square w-full overflow-hidden rounded-t-xl bg-muted">
           {hasValidImage && !imageError ? (
             <Image
-              src={item.image}
+              src={item.image!}
               alt={item.name}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              onError={() => setImageError(true)}
+              onError={handleImageError}
+              unoptimized={true}
+              priority={false}
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center">
@@ -52,6 +68,17 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
               <Badge key={tag} variant="secondary">{tag}</Badge>
             ))}
           </div>
+          {/* Add to Cart Button */}
+          {item.available && (
+            <Button
+              size="icon"
+              onClick={handleAddToCart}
+              className="absolute bottom-2 right-2 h-10 w-10 rounded-full shadow-lg hover:shadow-xl transition-all hover:scale-110"
+              aria-label={`${item.name} 장바구니에 담기`}
+            >
+              <ShoppingCart className="h-5 w-5" />
+            </Button>
+          )}
           {/* Out of Stock Overlay */}
           {!item.available && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">
