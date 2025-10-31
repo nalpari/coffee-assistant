@@ -299,9 +299,19 @@ function mapMenuItemToDisplay(item: any): MenuItemDisplay {
   // file_uuid에 이미 확장자가 포함되어 있으므로 추가하지 않음
   // menu_type을 동적으로 사용하여 경로 생성 (menu, store, event, new-menu 등)
   const firstImage = images[0];
-  const imageUrl = firstImage
-    ? `http://3.35.189.180/minio/images/${firstImage.menuType}/${firstImage.fileUuid}`
-    : '';
+  let imageUrl: string | null = null;
+
+  if (firstImage && firstImage.fileUuid && firstImage.menuType) {
+    try {
+      // URL 유효성 검증을 위해 URL 생성자 사용
+      const url = `http://3.35.189.180/minio/images/${firstImage.menuType}/${firstImage.fileUuid}`;
+      new URL(url); // URL 유효성 검증
+      imageUrl = url;
+    } catch (error) {
+      console.warn(`Invalid image URL for menu ${item.id}:`, error);
+      imageUrl = null;
+    }
+  }
 
   // 마케팅 태그 → 라벨 변환
   const marketingTags = Array.isArray(item.marketing) ? item.marketing : [];
