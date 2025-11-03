@@ -7,12 +7,16 @@ import { FooterNavButton } from './FooterNavButton';
 export function FooterNavigation() {
   const pathname = usePathname();
 
+  const handleComingSoon = (featureName: string) => {
+    alert(`${featureName} 기능은 준비중입니다.`);
+  };
+
   const navItems = [
-    { icon: Home, label: '홈', href: '/' },
-    { icon: Receipt, label: '주문내역', href: '/orders' },
-    { icon: Sparkles, label: 'AI추천', href: '/ai-recommendations' },
-    { icon: Ticket, label: '쿠폰', href: '/coupons' },
-    { icon: User, label: '마이', href: '/profile' },
+    { icon: Home, label: '홈', href: '/', enabled: true },
+    { icon: Receipt, label: '주문내역', href: '/orders', enabled: true },
+    { icon: Sparkles, label: 'AI추천', href: '/ai-recommendations', enabled: true },
+    { icon: Ticket, label: '쿠폰', href: '/coupons', enabled: false },
+    { icon: User, label: '마이', href: '/profile', enabled: false },
   ];
 
   return (
@@ -25,6 +29,8 @@ export function FooterNavigation() {
             label={item.label}
             href={item.href}
             isActive={pathname === item.href}
+            onClick={!item.enabled ? () => handleComingSoon(item.label) : undefined}
+            disabled={!item.enabled}
           />
         ))}
       </nav>

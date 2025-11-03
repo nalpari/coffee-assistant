@@ -6,25 +6,36 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ShoppingAgent } from '@/lib/shopping-agent';
 import { conversationManager } from '@/lib/conversation-manager';
+import { getServerSession } from '@/lib/supabase-server';
 import type { ChatRequest, ChatResponse, ChatMessage } from '@/types/shopping-agent';
 
 const shoppingAgent = new ShoppingAgent();
 
 export async function POST(req: NextRequest) {
   try {
+    // 1. 세션 확인 및 사용자 인증
+    const session = await getServerSession();
+
+    if (!session || !session.user) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Please login to use AI recommendations' },
+        { status: 401 }
+      );
+    }
+
+    // 2. 인증된 사용자 ID 추출
+    const userId = session.user.id;
+
     const body: ChatRequest = await req.json();
     const { message, cart } = body;
 
-    // 검증
+    // 3. 메시지 검증
     if (!message || typeof message !== 'string') {
       return NextResponse.json(
         { error: 'Message is required' },
         { status: 400 }
       );
     }
-
-    // 임시 사용자 ID (실제로는 인증 시스템에서 가져와야 함)
-    const userId = 'guest-user';
 
     // 컨텍스트 가져오기
     const context = conversationManager.getContext(userId);
@@ -61,8 +72,10 @@ export async function POST(req: NextRequest) {
     };
     conversationManager.addMessage(userId, aiMessage);
 
-    // 액션 처리 (장바구니 업데이트)
+    // 액션 처리 (장바구니 업데이트 및 주문 조회)
     let updatedCart = context.cart;
+    let orders = undefined;
+    let order = undefined;
 
     if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
       const productIds = aiResponse.products.map((p) => p.id);
@@ -74,13 +87,19 @@ export async function POST(req: NextRequest) {
           updatedCart = conversationManager.addToCart(userId, {
             id: parseInt(product.id),
             name: product.name,
-            description: product.description,
+            description: product.description || '',
             price: product.price,
-            discountPrice: null,
-            categoryId: null,
-            categoryName: product.category,
-            imageUrl: product.image_url,
-            stock: product.stock,
+            discountPrice: undefined,
+            image: product.image_url,
+            images: [],
+            category: product.category || '',
+            categoryId: undefined,
+            tags: [],
+            available: true,
+            popular: false,
+            cold: false,
+            hot: false,
+            orderNo: 0,
             quantity: productAction.quantity,
           });
         }
@@ -93,6 +112,12 @@ export async function POST(req: NextRequest) {
           productAction.quantity
         );
       }
+    } else if (aiResponse.action === 'get_orders') {
+      // 주문 내역 조회
+      orders = await shoppingAgent.getUserOrders(userId, 10);
+    } else if (aiResponse.action === 'get_order_status' && aiResponse.orderNumber) {
+      // 특정 주문 상태 조회
+      order = await shoppingAgent.getOrderByNumber(userId, aiResponse.orderNumber);
     }
 
     // 장바구니 유효성 검증
@@ -104,6 +129,8 @@ export async function POST(req: NextRequest) {
       action: aiResponse.action,
       cart: updatedCart,
       products: aiResponse.products,
+      orders,
+      order,
     };
 
     return NextResponse.json(response);

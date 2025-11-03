@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Header } from '@/components/layout/Header';
 import { CategoryTabs } from '@/components/menu/CategoryTabs';
 import { MenuGrid } from '@/components/menu/MenuGrid';
@@ -82,72 +83,74 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={handleSearchChange}
-        cartItemCount={cartItemCount}
-        onCartClick={handleCartClick}
-      />
+    <ProtectedRoute>
+      <div className="min-h-screen bg-background">
+        <Header
+          searchQuery={searchQuery}
+          onSearchChange={handleSearchChange}
+          cartItemCount={cartItemCount}
+          onCartClick={handleCartClick}
+        />
 
-      <CategoryTabs
-        selectedCategory={selectedCategory}
-        onCategoryChange={handleCategoryChange}
-      />
+        <CategoryTabs
+          selectedCategory={selectedCategory}
+          onCategoryChange={handleCategoryChange}
+        />
 
-      <main className="container mx-auto pb-24">
-        {/* 초기 로딩 */}
-        {isLoading && <LoadingSpinner />}
+        <main className="container mx-auto pb-24">
+          {/* 초기 로딩 */}
+          {isLoading && <LoadingSpinner />}
 
-        {/* 에러 메시지 */}
-        {isError && (
-          <div className="flex items-center justify-center py-16">
-            <p className="text-red-500">
-              데이터를 불러오는 중 오류가 발생했습니다: {error?.message}
-            </p>
-          </div>
-        )}
+          {/* 에러 메시지 */}
+          {isError && (
+            <div className="flex items-center justify-center py-16">
+              <p className="text-red-500">
+                데이터를 불러오는 중 오류가 발생했습니다: {error?.message}
+              </p>
+            </div>
+          )}
 
-        {/* 메뉴 그리드 */}
-        {!isLoading && !isError && (
-          <>
-            <MenuGrid
-              items={displayedItems}
-              onItemClick={handleItemClick}
-              onAddToCart={handleAddToCart}
-            />
+          {/* 메뉴 그리드 */}
+          {!isLoading && !isError && (
+            <>
+              <MenuGrid
+                items={displayedItems}
+                onItemClick={handleItemClick}
+                onAddToCart={handleAddToCart}
+              />
 
-            {/* 다음 페이지 로딩 스피너 */}
-            {isFetchingNextPage && <LoadingSpinner />}
+              {/* 다음 페이지 로딩 스피너 */}
+              {isFetchingNextPage && <LoadingSpinner />}
 
-            {/* Intersection Observer 감지 요소 */}
-            {hasNextPage && !isFetchingNextPage && (
-              <div ref={observerRef} className="h-10" aria-hidden="true" />
-            )}
+              {/* Intersection Observer 감지 요소 */}
+              {hasNextPage && !isFetchingNextPage && (
+                <div ref={observerRef} className="h-10" aria-hidden="true" />
+              )}
 
-            {/* 모든 데이터 로드 완료 메시지 */}
-            {!hasNextPage && displayedItems.length > 0 && (
-              <div className="flex items-center justify-center py-8">
-                <p className="text-sm text-gray-500">
-                  모든 메뉴를 불러왔습니다 ({displayedItems.length}개)
-                </p>
-              </div>
-            )}
+              {/* 모든 데이터 로드 완료 메시지 */}
+              {!hasNextPage && displayedItems.length > 0 && (
+                <div className="flex items-center justify-center py-8">
+                  <p className="text-sm text-gray-500">
+                    모든 메뉴를 불러왔습니다 ({displayedItems.length}개)
+                  </p>
+                </div>
+              )}
 
-            {/* 검색 결과 없음 */}
-            {displayedItems.length === 0 && (
-              <div className="flex items-center justify-center py-16">
-                <p className="text-gray-500">검색 결과가 없습니다.</p>
-              </div>
-            )}
-          </>
-        )}
-      </main>
+              {/* 검색 결과 없음 */}
+              {displayedItems.length === 0 && (
+                <div className="flex items-center justify-center py-16">
+                  <p className="text-gray-500">검색 결과가 없습니다.</p>
+                </div>
+              )}
+            </>
+          )}
+        </main>
 
-      <CartSheet
-        open={isCartOpen}
-        onOpenChange={setIsCartOpen}
-      />
-    </div>
+        <CartSheet
+          open={isCartOpen}
+          onOpenChange={setIsCartOpen}
+        />
+      </div>
+    </ProtectedRoute>
   );
 }

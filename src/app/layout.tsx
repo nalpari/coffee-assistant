@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { FooterNavigation } from "@/components/layout/FooterNavigation";
 import "./globals.css";
 
@@ -28,11 +29,14 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <QueryProvider>
-          {children}
-          <FooterNavigation />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            {children}
+            <FooterNavigation />
+          </QueryProvider>
+        </AuthProvider>
       </body>
     </html>
   );

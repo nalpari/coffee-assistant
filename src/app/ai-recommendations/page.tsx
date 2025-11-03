@@ -2,16 +2,18 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, RotateCcw, Home } from 'lucide-react';
+import { Sparkles, RotateCcw, Home, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
+import { useAuth } from '@/contexts/AuthContext';
 import type { ChatResponse } from '@/types/shopping-agent';
 
 export default function AIRecommendationsPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const { messages, isLoading, addMessage, clearMessages, setLoading } = useChatStore();
   const { items: cartItems } = useCartStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -55,6 +57,17 @@ export default function AIRecommendationsPage() {
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // 인증 오류: 로그인 필요
+          addMessage({
+            role: 'assistant',
+            content: '세션이 만료되었습니다. 다시 로그인해주세요.',
+          });
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+          return;
+        }
         throw new Error('AI 응답을 받는 중 오류가 발생했습니다.');
       }
 
@@ -98,6 +111,54 @@ export default function AIRecommendationsPage() {
       });
     }, 100);
   };
+
+  // 로그인 가드: 로그인하지 않은 사용자에게 안내 표시
+  if (authLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
+        <div className="text-center">
+          <Sparkles className="w-12 h-12 text-purple-500 animate-pulse mx-auto mb-4" />
+          <p className="text-lg text-muted-foreground">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
+        <div className="max-w-md mx-auto p-8 text-center space-y-6">
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold">AI 커피 추천</h1>
+          <p className="text-muted-foreground">
+            로그인하시면 맞춤형 AI 추천과<br />
+            구매내역 기반 개인화 서비스를 이용하실 수 있습니다.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Button
+              onClick={() => router.push('/')}
+              size="lg"
+              className="w-full"
+            >
+              <LogIn className="mr-2 h-5 w-5" />
+              로그인하러 가기
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => router.push('/')}
+              size="lg"
+              className="w-full"
+            >
+              <Home className="mr-2 h-5 w-5" />
+              홈으로 돌아가기
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">

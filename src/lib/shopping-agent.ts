@@ -92,6 +92,23 @@ export class ShoppingAgent {
       contextInfo += `현재 장바구니: 비어있음\n\n`;
     }
 
+    // 최근 주문 내역 (NEW)
+    const recentOrders = await this.getUserOrders(userId, 3);
+    if (recentOrders.length > 0) {
+      contextInfo += `최근 주문 내역 (최근 3건):\n`;
+      recentOrders.forEach((order: any) => {
+        const itemCount = order.items?.length || 0;
+        const statusLabel = this.getOrderStatusLabel(order.status);
+        contextInfo += `- 주문번호: ${order.order_number}\n`;
+        contextInfo += `  상태: ${statusLabel} (${order.status})\n`;
+        contextInfo += `  아이템: ${itemCount}개\n`;
+        contextInfo += `  금액: ${order.final_amount.toLocaleString()}원\n`;
+        contextInfo += `  날짜: ${new Date(order.created_at).toLocaleString('ko-KR')}\n\n`;
+      });
+    } else {
+      contextInfo += `최근 주문 내역: 없음\n\n`;
+    }
+
     // 자주 구매하는 제품
     if (frequentProducts.length > 0) {
       contextInfo += `자주 구매하는 제품:\n`;
@@ -149,12 +166,14 @@ export class ShoppingAgent {
 
       const parsedResponse = JSON.parse(jsonMatch[0]);
 
-      // 유효성 검증
+      // 유효성 검증 (주문 액션 추가)
       const validActions = [
         'recommend',
         'add_to_cart',
         'remove_from_cart',
         'checkout',
+        'get_orders',
+        'get_order_status',
         'chat',
       ];
 
@@ -166,6 +185,7 @@ export class ShoppingAgent {
         action: parsedResponse.action,
         message: parsedResponse.message || '응답을 처리할 수 없습니다.',
         products: parsedResponse.products,
+        orderNumber: parsedResponse.orderNumber,
       };
     } catch (error) {
       console.error('Error parsing Claude response:', error);
@@ -198,7 +218,7 @@ export class ShoppingAgent {
       const productFrequency = new Map<string, UserPurchaseFrequency>();
 
       orders.forEach((order) => {
-        order.order_items?.forEach((item) => {
+        order.order_items?.forEach((item: any) => {
           const productId = item.product_id;
           const product = item.menu_items;
 
@@ -289,5 +309,68 @@ export class ShoppingAgent {
       console.error('Error validating cart items:', error);
       return cartItems;
     }
+  }
+
+  /**
+   * 사용자의 주문 내역 조회 (NEW)
+   */
+  async getUserOrders(userId: string, limit: number = 10): Promise<any[]> {
+    try {
+      const { data: orders, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Get user orders error:', error);
+        return [];
+      }
+
+      return orders || [];
+    } catch (error) {
+      console.error('Error fetching user orders:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 주문번호로 특정 주문 조회 (NEW)
+   */
+  async getOrderByNumber(userId: string, orderNumber: string): Promise<any | null> {
+    try {
+      const { data: order, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('order_number', orderNumber)
+        .single();
+
+      if (error) {
+        console.error('Get order by number error:', error);
+        return null;
+      }
+
+      return order;
+    } catch (error) {
+      console.error('Error fetching order by number:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 주문 상태 라벨 변환 (NEW)
+   */
+  private getOrderStatusLabel(status: string): string {
+    const statusLabels: Record<string, string> = {
+      pending: '주문 접수',
+      confirmed: '주문 확인',
+      preparing: '준비 중',
+      ready: '준비 완료',
+      completed: '픽업 완료',
+      cancelled: '취소됨',
+    };
+    return statusLabels[status] || status;
   }
 }

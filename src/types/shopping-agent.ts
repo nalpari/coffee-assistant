@@ -6,17 +6,19 @@
 import type { CartItem } from './cart';
 
 /**
- * AI 액션 타입
+ * AI 액션 타입 (주문 관리 기능 추가)
  */
 export type AIAction =
   | 'recommend' // 제품 추천
   | 'add_to_cart' // 장바구니에 추가
   | 'remove_from_cart' // 장바구니에서 제거
   | 'checkout' // 결제 진행
+  | 'get_orders' // 주문 내역 조회 (NEW)
+  | 'get_order_status' // 특정 주문 상태 조회 (NEW)
   | 'chat'; // 일반 대화
 
 /**
- * AI 응답
+ * AI 응답 (주문 기능 확장)
  */
 export interface AIResponse {
   action: AIAction;
@@ -25,6 +27,7 @@ export interface AIResponse {
     id: string;
     quantity: number;
   }>;
+  orderNumber?: string; // 주문번호 (get_order_status 액션 시) (NEW)
 }
 
 /**
@@ -83,6 +86,20 @@ export interface ChatRequest {
 }
 
 /**
+ * 주문 정보 (Chat API용)
+ */
+export interface Order {
+  id: string;
+  order_number: string;
+  user_id: string;
+  status: string;
+  items: any;
+  final_amount: number;
+  created_at: string;
+  updated_at: string;
+}
+
+/**
  * 채팅 API 응답
  */
 export interface ChatResponse {
@@ -93,4 +110,6 @@ export interface ChatResponse {
     id: string;
     quantity: number;
   }>;
+  orders?: Order[]; // 주문 목록 (get_orders 액션 시) (NEW)
+  order?: Order; // 특정 주문 (get_order_status 액션 시) (NEW)
 }
