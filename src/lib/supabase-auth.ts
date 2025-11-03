@@ -4,20 +4,31 @@ import { supabase } from '@/lib/supabase';
  * 애플리케이션의 베이스 URL을 동적으로 가져옵니다.
  * 환경에 따라 적절한 URL을 반환합니다.
  *
+ * **중요**: 이 함수는 클라이언트와 서버 양쪽에서 호출될 수 있습니다.
+ * - 클라이언트: OAuth 리다이렉트 URL 생성 (signInWithGoogle)
+ * - 서버: API 라우트, Server Components에서 URL 필요 시
+ *
  * 우선순위:
- * 1. NEXT_PUBLIC_SITE_URL (프로덕션 URL, .env.local에 설정)
- * 2. NEXT_PUBLIC_VERCEL_URL (Vercel이 자동으로 설정)
- * 3. window.location.origin (클라이언트 측 폴백)
- * 4. http://localhost:3000 (개발 환경 기본값)
+ * 1. 브라우저 환경: window.location.origin (가장 정확함)
+ * 2. 서버 환경: NEXT_PUBLIC_SITE_URL 환경 변수
+ * 3. 서버 환경: NEXT_PUBLIC_VERCEL_URL 환경 변수
+ * 4. 폴백: http://localhost:3000
  *
  * @returns 올바른 형식의 베이스 URL (https:// 포함, 슬래시로 종료)
  */
 export function getURL(): string {
+  // 브라우저 환경에서는 항상 현재 페이지의 origin 사용
+  // 이것이 OAuth 리다이렉트에서 가장 정확한 URL입니다
+  if (typeof window !== 'undefined') {
+    const url = window.location.origin;
+    return url.endsWith('/') ? url : `${url}/`;
+  }
+
+  // 서버 환경: 환경 변수 사용
   let url =
-    process?.env?.NEXT_PUBLIC_SITE_URL ?? // 프로덕션 URL 우선
-    process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Vercel 자동 설정
-    (typeof window !== 'undefined' ? window.location.origin : undefined) ?? // 클라이언트 폴백
-    'http://localhost:3000/'; // 개발 환경 기본값
+    process.env.NEXT_PUBLIC_SITE_URL ?? // 프로덕션 URL
+    process.env.NEXT_PUBLIC_VERCEL_URL ?? // Vercel 자동 설정
+    'http://localhost:3000'; // 개발 환경 기본값
 
   // localhost가 아니면 https:// 강제
   url = url.startsWith('http') ? url : `https://${url}`;
