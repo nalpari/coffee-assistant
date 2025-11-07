@@ -93,7 +93,7 @@ export function OrderList() {
           <p className="text-lg">주문 내역이 없습니다.</p>
           {selectedStatus && (
             <p className="text-sm mt-2">
-              '{ORDER_STATUS_LABELS[selectedStatus]}' 상태의 주문이 없습니다.
+              &apos;{ORDER_STATUS_LABELS[selectedStatus]}&apos; 상태의 주문이 없습니다.
             </p>
           )}
         </div>

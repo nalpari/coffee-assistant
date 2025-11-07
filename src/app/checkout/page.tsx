@@ -26,6 +26,7 @@ export default function CheckoutPage() {
   // 클라이언트 사이드에서만 렌더링 (hydration 오류 방지)
   useEffect(() => {
     setMounted(true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,7 +217,7 @@ export default function CheckoutPage() {
                   onChange={(e) =>
                     setFormData({
                       ...formData,
-                      paymentMethod: e.target.value as any,
+                      paymentMethod: e.target.value as 'card' | 'kakao' | 'naver' | 'cash',
                     })
                   }
                   className="sr-only"

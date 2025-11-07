@@ -112,10 +112,20 @@ export async function getMenus(options: GetMenusOptions = {}): Promise<MenuPageR
     }
 
     // Step 4: menu_id를 키로 이미지 그룹화
-    const imagesByMenuId = new Map<number, any[]>();
+    interface ImageData {
+      menu_id: number;
+      file_uuid: string;
+      file_name: string;
+      menu_type: string;
+      ordering: number;
+      created_by: string;
+      created_date: string;
+    }
+
+    const imagesByMenuId = new Map<number, ImageData[]>();
 
     if (imageData) {
-      imageData.forEach(image => {
+      imageData.forEach((image: ImageData) => {
         if (!imagesByMenuId.has(image.menu_id)) {
           imagesByMenuId.set(image.menu_id, []);
         }
@@ -124,10 +134,13 @@ export async function getMenus(options: GetMenusOptions = {}): Promise<MenuPageR
     }
 
     // Step 5: 메뉴 데이터에 이미지 매핑
-    const menuWithImages = menuData.map(menu => ({
-      ...menu,
-      image: imagesByMenuId.get(menu.id) || [],
-    }));
+    const menuWithImages: MenuItemData[] = menuData.map((menu) => {
+      const images = imagesByMenuId.get(menu.id) || [];
+      return {
+        ...menu,
+        image: images,
+      } as unknown as MenuItemData;
+    });
 
     // DB 응답 → MenuItemDisplay 변환
     const menuItems = menuWithImages.map(mapMenuItemToDisplay);
@@ -170,14 +183,25 @@ export async function getCategories(): Promise<CategoryInfo[]> {
       throw error;
     }
 
-    return (data || []).map((cat: any) => ({
+    interface CategoryData {
+      id: number;
+      name: string;
+      order_no: number;
+      status: string;
+      created_by: string;
+      created_date: string;
+      updated_by?: string | null;
+      updated_date?: string | null;
+    }
+
+    return (data || []).map((cat: CategoryData): CategoryInfo => ({
       id: cat.id,
       name: cat.name,
       orderNo: cat.order_no,
       status: cat.status,
       createdBy: cat.created_by,
       createdDate: new Date(cat.created_date),
-      updatedBy: cat.updated_by,
+      updatedBy: cat.updated_by || undefined,
       updatedDate: cat.updated_date ? new Date(cat.updated_date) : undefined,
     }));
   } catch (error) {
@@ -239,10 +263,10 @@ export async function getMenuItemById(menuId: number): Promise<MenuItemDisplay |
     }
 
     // Step 3: 메뉴 데이터에 이미지 추가
-    const menuWithImages = {
+    const menuWithImages: MenuItemData = {
       ...menuData,
-      image: imageData || [],
-    };
+      image: (imageData || []) as MenuItemData['image'],
+    } as unknown as MenuItemData;
 
     return mapMenuItemToDisplay(menuWithImages);
   } catch (error) {
@@ -274,17 +298,44 @@ export async function searchMenuItems(query: string): Promise<MenuItemDisplay[]>
 }
 
 /**
+ * DB 응답 데이터 타입
+ */
+interface MenuItemData {
+  id: number;
+  name: string;
+  description: string;
+  price: number;
+  discount_price: number | null;
+  cold: boolean;
+  hot: boolean;
+  category_id: number | null;
+  status: string;
+  marketing: string[] | null;
+  order_no: number;
+  category?: { id: number; name: string } | null;
+  image?: Array<{
+    file_uuid: string;
+    file_name: string;
+    menu_id: number;
+    menu_type: string;
+    ordering: number;
+    created_by: string;
+    created_date: string;
+  }>;
+}
+
+/**
  * DB 응답 → MenuItemDisplay 변환 함수
  *
  * @param item - Supabase 응답 데이터
  * @returns MenuItemDisplay 객체
  */
-function mapMenuItemToDisplay(item: any): MenuItemDisplay {
+function mapMenuItemToDisplay(item: MenuItemData): MenuItemDisplay {
   // 이미지 정렬 및 첫 번째 이미지 선택
   const images: MenuImage[] = Array.isArray(item.image)
     ? item.image
-        .sort((a: any, b: any) => a.ordering - b.ordering)
-        .map((img: any) => ({
+        .sort((a, b) => a.ordering - b.ordering)
+        .map((img) => ({
           fileUuid: img.file_uuid,
           fileName: img.file_name,
           menuId: img.menu_id,
@@ -333,11 +384,11 @@ function mapMenuItemToDisplay(item: any): MenuItemDisplay {
     name: item.name,
     description: item.description,
     price: item.price,
-    discountPrice: item.discount_price,
+    discountPrice: item.discount_price ?? undefined,
     image: imageUrl,
     images,
     category: item.category?.name || '',
-    categoryId: item.category_id,
+    categoryId: item.category_id ?? undefined,
     tags,
     available: item.status === 'E0101', // E0101 = 사용
     popular: marketingTags.includes('E0202'), // E0202 = Best

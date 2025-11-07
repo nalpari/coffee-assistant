@@ -6,7 +6,9 @@ import type {
   OrdersResponse,
   OrderFilters,
   Order,
+  OrderStatus,
 } from '@/types/order';
+import type { CartItem } from '@/types/cart';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
@@ -60,23 +62,42 @@ export async function GET(req: NextRequest) {
     }
 
     // DB 컬럼명을 타입스크립트 인터페이스 형식으로 변환
-    const orders: Order[] = (data || []).map((row: any) => ({
+    interface OrderRow {
+      id: number;
+      user_id: string | null;
+      order_number: string;
+      items: unknown;
+      total_amount: number;
+      final_amount: number;
+      discount_amount: number;
+      status: string;
+      order_notes: string | null;
+      customer_name: string | null;
+      customer_phone: string | null;
+      customer_email: string | null;
+      created_at: string;
+      updated_at: string;
+      confirmed_at: string | null;
+      completed_at: string | null;
+    }
+
+    const orders: Order[] = (data || []).map((row: OrderRow) => ({
       id: row.id,
-      userId: row.user_id,
+      userId: row.user_id || undefined,
       orderNumber: row.order_number,
-      items: row.items || [],
+      items: Array.isArray(row.items) ? (row.items as CartItem[]) : undefined,
       totalAmount: row.total_amount || row.final_amount,
-      discountAmount: row.discount_amount,
+      discountAmount: row.discount_amount || undefined,
       finalAmount: row.final_amount,
-      status: row.status,
-      orderNotes: row.order_notes,
-      customerName: row.customer_name,
-      customerPhone: row.customer_phone,
-      customerEmail: row.customer_email,
+      status: row.status as OrderStatus,
+      orderNotes: row.order_notes || undefined,
+      customerName: row.customer_name || undefined,
+      customerPhone: row.customer_phone || undefined,
+      customerEmail: row.customer_email || undefined,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-      confirmedAt: row.confirmed_at,
-      completedAt: row.completed_at,
+      confirmedAt: row.confirmed_at || undefined,
+      completedAt: row.completed_at || undefined,
     }));
 
     const response: OrdersResponse = {

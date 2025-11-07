@@ -9,7 +9,7 @@ import { conversationManager } from '@/lib/conversation-manager';
 import { getServerSession, createSupabaseServerClient } from '@/lib/supabase-server';
 import { createOrder } from '@/app/actions/order';
 import { processPayment } from '@/app/actions/payment';
-import type { ChatRequest, ChatResponse, ChatMessage } from '@/types/shopping-agent';
+import type { ChatRequest, ChatResponse, ChatMessage, Order } from '@/types/shopping-agent';
 
 const shoppingAgent = new ShoppingAgent();
 
@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
 
     // 액션 처리 (장바구니 업데이트 및 주문 조회)
     let updatedCart = context.cart;
-    let orders = undefined;
-    let order = undefined;
+    let orders: Order[] | undefined = undefined;
+    let order: Order | undefined = undefined;
 
     if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
       const productIds = aiResponse.products.map((p) => p.id);
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
         menuName: item.name,
         menuPrice: item.discountPrice ?? item.price,
         quantity: item.quantity,
-        temperature: item.cold ? 'cold' : item.hot ? 'hot' : undefined,
+        temperature: (item.cold ? 'cold' : item.hot ? 'hot' : undefined) as 'hot' | 'cold' | undefined,
       }));
 
       // 총 금액 계산
@@ -216,7 +216,7 @@ export async function POST(req: NextRequest) {
           items: orderData.items || [],
           final_amount: orderData.final_amount,
           created_at: orderData.created_at,
-          updated_at: orderData.updated_at,
+          updated_at: orderData.updated_at || orderData.created_at,
         };
       }
 
@@ -224,10 +224,32 @@ export async function POST(req: NextRequest) {
       aiResponse.message = `주문이 완료되었습니다! 주문번호: ${orderResult.orderNumber}\n결제가 정상적으로 처리되었습니다.`;
     } else if (aiResponse.action === 'get_orders') {
       // 주문 내역 조회
-      orders = await shoppingAgent.getUserOrders(userId, 10);
+      const userOrders = await shoppingAgent.getUserOrders(userId, 10);
+      orders = userOrders.map((o) => ({
+        id: o.id.toString(),
+        order_number: o.order_number,
+        user_id: userId,
+        status: o.status,
+        items: o.items || [],
+        final_amount: o.final_amount,
+        created_at: o.created_at,
+        updated_at: o.created_at,
+      }));
     } else if (aiResponse.action === 'get_order_status' && aiResponse.orderNumber) {
       // 특정 주문 상태 조회
-      order = await shoppingAgent.getOrderByNumber(userId, aiResponse.orderNumber);
+      const foundOrder = await shoppingAgent.getOrderByNumber(userId, aiResponse.orderNumber);
+      if (foundOrder) {
+        order = {
+          id: foundOrder.id.toString(),
+          order_number: foundOrder.order_number,
+          user_id: userId,
+          status: foundOrder.status,
+          items: foundOrder.items || [],
+          final_amount: foundOrder.final_amount,
+          created_at: foundOrder.created_at,
+          updated_at: foundOrder.created_at,
+        };
+      }
     }
 
     // 장바구니 유효성 검증

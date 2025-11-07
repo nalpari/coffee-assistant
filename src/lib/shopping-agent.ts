@@ -108,8 +108,8 @@ export class ShoppingAgent {
     const recentOrders = await this.getUserOrders(userId, 3);
     if (recentOrders.length > 0) {
       contextInfo += `최근 주문 내역 (최근 3건):\n`;
-      recentOrders.forEach((order: any) => {
-        const itemCount = order.items?.length || 0;
+      recentOrders.forEach((order) => {
+        const itemCount = Array.isArray(order.items) ? order.items.length : 0;
         const statusLabel = this.getOrderStatusLabel(order.status);
         contextInfo += `- 주문번호: ${order.order_number}\n`;
         contextInfo += `  상태: ${statusLabel} (${order.status})\n`;
@@ -133,9 +133,11 @@ export class ShoppingAgent {
     // 현재 판매 중인 제품 목록
     if (products && products.length > 0) {
       contextInfo += `현재 판매 중인 제품:\n`;
-      products.forEach((product: any) => {
+      products.forEach((product) => {
         const price = product.discount_price ?? product.price;
-        const categoryName = product.category?.name || '기타';
+        const categoryName = (product.category && typeof product.category === 'object' && 'name' in product.category)
+          ? product.category.name
+          : '기타';
         contextInfo += `- ID: ${product.id}, 이름: ${product.name}, 가격: ${price.toLocaleString()}원, 카테고리: ${categoryName}\n`;
       });
       contextInfo += `\n`;
@@ -231,30 +233,32 @@ export class ShoppingAgent {
       const productFrequency = new Map<string, UserPurchaseFrequency>();
 
       orders.forEach((order) => {
-        order.order_items?.forEach((item: any) => {
-          const menuId = item.menu_id;
-          const product = item.menu;
+        if (Array.isArray(order.order_items)) {
+          order.order_items.forEach((item: { menu_id: number; menu?: { name: string; price: number } }) => {
+            const menuId = item.menu_id;
+            const product = item.menu;
 
-          if (product) {
-            const menuIdStr = menuId.toString();
-            if (productFrequency.has(menuIdStr)) {
-              const freq = productFrequency.get(menuIdStr)!;
-              freq.purchase_count += 1;
-              if (new Date(order.created_at) > new Date(freq.last_purchased)) {
-                freq.last_purchased = order.created_at;
+            if (product) {
+              const menuIdStr = menuId.toString();
+              if (productFrequency.has(menuIdStr)) {
+                const freq = productFrequency.get(menuIdStr)!;
+                freq.purchase_count += 1;
+                if (new Date(order.created_at) > new Date(freq.last_purchased)) {
+                  freq.last_purchased = order.created_at;
+                }
+              } else {
+                productFrequency.set(menuIdStr, {
+                  user_id: userId,
+                  product_id: menuIdStr,
+                  product_name: product.name,
+                  price: product.price,
+                  purchase_count: 1,
+                  last_purchased: order.created_at,
+                });
               }
-            } else {
-              productFrequency.set(menuIdStr, {
-                user_id: userId,
-                product_id: menuIdStr,
-                product_name: product.name,
-                price: product.price,
-                purchase_count: 1,
-                last_purchased: order.created_at,
-              });
             }
-          }
-        });
+          });
+        }
       });
 
       // 구매 횟수 순으로 정렬하여 상위 10개 반환
@@ -304,9 +308,15 @@ export class ShoppingAgent {
         .order('menu_id', { ascending: true })
         .order('ordering', { ascending: true });
 
-      const imagesByMenuId = new Map<number, any[]>();
+      interface ImageData {
+        menu_id: number;
+        file_uuid: string;
+        menu_type: string;
+      }
+
+      const imagesByMenuId = new Map<number, ImageData[]>();
       if (images) {
-        images.forEach(img => {
+        images.forEach((img: ImageData) => {
           if (!imagesByMenuId.has(img.menu_id)) {
             imagesByMenuId.set(img.menu_id, []);
           }
@@ -314,7 +324,18 @@ export class ShoppingAgent {
         });
       }
 
-      return products.map((p: any) => {
+      interface ProductData {
+        id: number;
+        name: string;
+        description: string | null;
+        price: number;
+        discount_price: number | null;
+        status: string;
+        category?: { name: string } | null;
+        created_date: string;
+      }
+
+      return (products as unknown as ProductData[]).map((p: ProductData) => {
         const menuImages = imagesByMenuId.get(p.id) || [];
         const firstImage = menuImages[0];
         let imageUrl: string | null = null;
@@ -373,7 +394,15 @@ export class ShoppingAgent {
   /**
    * 사용자의 주문 내역 조회 (NEW)
    */
-  async getUserOrders(userId: string, limit: number = 10): Promise<any[]> {
+  async getUserOrders(userId: string, limit: number = 10): Promise<Array<{
+    id: number;
+    order_number: string;
+    status: string;
+    final_amount: number;
+    created_at: string;
+    items?: unknown[];
+    order_items?: Array<{ menu_id: number; menu?: { name: string; price: number } }>;
+  }>> {
     try {
       const { data: orders, error } = await supabase
         .from('orders')
@@ -397,7 +426,14 @@ export class ShoppingAgent {
   /**
    * 주문번호로 특정 주문 조회 (NEW)
    */
-  async getOrderByNumber(userId: string, orderNumber: string): Promise<any | null> {
+  async getOrderByNumber(userId: string, orderNumber: string): Promise<{
+    id: number;
+    order_number: string;
+    status: string;
+    final_amount: number;
+    created_at: string;
+    items?: unknown[];
+  } | null> {
     try {
       const { data: order, error } = await supabase
         .from('orders')

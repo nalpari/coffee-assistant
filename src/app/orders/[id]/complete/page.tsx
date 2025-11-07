@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import { getOrderById } from '@/app/actions/order'
-import { getOrderStatusLabel } from '@/lib/order-utils'
 import { getPaymentMethodLabel } from '@/lib/payment-utils'
 import { formatPrice } from '@/lib/price-utils'
 import Link from 'next/link'

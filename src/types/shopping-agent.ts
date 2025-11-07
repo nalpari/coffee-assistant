@@ -93,7 +93,7 @@ export interface Order {
   order_number: string;
   user_id: string;
   status: string;
-  items: any;
+  items: unknown;
   final_amount: number;
   created_at: string;
   updated_at: string;
