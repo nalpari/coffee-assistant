@@ -67,11 +67,23 @@ export class ShoppingAgent {
   private async prepareContextInfo(context: ConversationContext): Promise<string> {
     const { userId, cart, frequentProducts } = context;
 
-    // 제품 목록 조회
+    // 제품 목록 조회 (menu 테이블 사용, status로 판매 가능 여부 판단)
     const { data: products } = await supabase
-      .from('menu_items')
-      .select('*')
-      .gt('stock', 0)
+      .from('menu')
+      .select(`
+        id,
+        name,
+        description,
+        price,
+        discount_price,
+        status,
+        category_id,
+        category:category_id (
+          id,
+          name
+        )
+      `)
+      .eq('status', 'E0101') // E0101 = 사용(판매중)
       .limit(20);
 
     let contextInfo = `사용자 ID: ${userId}\n\n`;
@@ -121,9 +133,10 @@ export class ShoppingAgent {
     // 현재 판매 중인 제품 목록
     if (products && products.length > 0) {
       contextInfo += `현재 판매 중인 제품:\n`;
-      products.forEach((product) => {
+      products.forEach((product: any) => {
         const price = product.discount_price ?? product.price;
-        contextInfo += `- ID: ${product.id}, 이름: ${product.name}, 가격: ${price.toLocaleString()}원, 카테고리: ${product.category_name || '기타'}\n`;
+        const categoryName = product.category?.name || '기타';
+        contextInfo += `- ID: ${product.id}, 이름: ${product.name}, 가격: ${price.toLocaleString()}원, 카테고리: ${categoryName}\n`;
       });
       contextInfo += `\n`;
     }
@@ -204,7 +217,7 @@ export class ShoppingAgent {
       // 주문 이력에서 자주 구매하는 제품 조회
       const { data: orders } = await supabase
         .from('orders')
-        .select('*, order_items(*, menu_items(*))')
+        .select('*, order_items(*, menu:menu_id(*))')
         .eq('user_id', userId)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
@@ -219,20 +232,21 @@ export class ShoppingAgent {
 
       orders.forEach((order) => {
         order.order_items?.forEach((item: any) => {
-          const productId = item.product_id;
-          const product = item.menu_items;
+          const menuId = item.menu_id;
+          const product = item.menu;
 
           if (product) {
-            if (productFrequency.has(productId)) {
-              const freq = productFrequency.get(productId)!;
+            const menuIdStr = menuId.toString();
+            if (productFrequency.has(menuIdStr)) {
+              const freq = productFrequency.get(menuIdStr)!;
               freq.purchase_count += 1;
               if (new Date(order.created_at) > new Date(freq.last_purchased)) {
                 freq.last_purchased = order.created_at;
               }
             } else {
-              productFrequency.set(productId, {
+              productFrequency.set(menuIdStr, {
                 user_id: userId,
-                product_id: productId,
+                product_id: menuIdStr,
                 product_name: product.name,
                 price: product.price,
                 purchase_count: 1,
@@ -261,24 +275,69 @@ export class ShoppingAgent {
   async getProductsByIds(productIds: string[]): Promise<Product[]> {
     try {
       const { data: products } = await supabase
-        .from('menu_items')
-        .select('*')
-        .in('id', productIds);
+        .from('menu')
+        .select(`
+          id,
+          name,
+          description,
+          price,
+          discount_price,
+          status,
+          category_id,
+          category:category_id (
+            id,
+            name
+          )
+        `)
+        .in('id', productIds.map(id => parseInt(id)));
 
       if (!products) {
         return [];
       }
 
-      return products.map((p) => ({
-        id: p.id.toString(),
-        name: p.name,
-        description: p.description,
-        price: p.price,
-        stock: p.stock,
-        category: p.category_name,
-        image_url: p.image_url,
-        created_at: p.created_at,
-      }));
+      // 이미지 별도 조회
+      const menuIds = products.map(p => p.id);
+      const { data: images } = await supabase
+        .from('image')
+        .select('*')
+        .in('menu_id', menuIds)
+        .order('menu_id', { ascending: true })
+        .order('ordering', { ascending: true });
+
+      const imagesByMenuId = new Map<number, any[]>();
+      if (images) {
+        images.forEach(img => {
+          if (!imagesByMenuId.has(img.menu_id)) {
+            imagesByMenuId.set(img.menu_id, []);
+          }
+          imagesByMenuId.get(img.menu_id)!.push(img);
+        });
+      }
+
+      return products.map((p: any) => {
+        const menuImages = imagesByMenuId.get(p.id) || [];
+        const firstImage = menuImages[0];
+        let imageUrl: string | null = null;
+
+        if (firstImage && firstImage.file_uuid && firstImage.menu_type) {
+          try {
+            imageUrl = `http://3.35.189.180/minio/images/${firstImage.menu_type}/${firstImage.file_uuid}`;
+          } catch (error) {
+            console.warn(`Invalid image URL for menu ${p.id}:`, error);
+          }
+        }
+
+        return {
+          id: p.id.toString(),
+          name: p.name,
+          description: p.description || '',
+          price: p.price,
+          stock: p.status === 'E0101' ? 999 : 0, // status로 판단 (E0101 = 사용/판매중)
+          category: p.category?.name || '',
+          image_url: imageUrl,
+          created_at: p.created_date || new Date().toISOString(),
+        };
+      });
     } catch (error) {
       console.error('Error fetching products:', error);
       return [];
@@ -286,24 +345,24 @@ export class ShoppingAgent {
   }
 
   /**
-   * 장바구니 아이템 유효성 검증 (재고 확인)
+   * 장바구니 아이템 유효성 검증 (판매 가능 여부 확인)
    */
   async validateCartItems(cartItems: CartItem[]): Promise<CartItem[]> {
     try {
       const productIds = cartItems.map((item) => item.id);
       const { data: products } = await supabase
-        .from('menu_items')
-        .select('id, stock')
+        .from('menu')
+        .select('id, status')
         .in('id', productIds);
 
       if (!products) {
         return cartItems;
       }
 
-      // 재고가 충분한 아이템만 반환
+      // 판매 중인 아이템만 반환 (status = 'E0101' = 사용/판매중)
       return cartItems.filter((item) => {
         const product = products.find((p) => p.id === item.id);
-        return product && product.stock >= item.quantity;
+        return product && product.status === 'E0101';
       });
     } catch (error) {
       console.error('Error validating cart items:', error);

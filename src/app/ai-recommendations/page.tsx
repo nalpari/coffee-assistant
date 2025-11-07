@@ -79,16 +79,19 @@ export default function AIRecommendationsPage() {
         content: data.message,
       });
 
-      // 장바구니 업데이트
-      if (data.cart && data.cart.length !== cartItems.length) {
-        // 서버에서 반환된 장바구니로 동기화
-        // 여기서는 간단히 메시지만 표시
-        console.log('장바구니가 업데이트되었습니다:', data.cart);
+      // 장바구니 업데이트 (서버에서 반환된 장바구니로 동기화)
+      if (data.cart) {
+        const { setItems } = useCartStore.getState();
+        setItems(data.cart);
       }
 
-      // checkout 액션 처리
-      if (data.action === 'checkout') {
-        router.push('/checkout');
+      // checkout 액션 처리 (결제 완료 시 주문 완료 페이지로 이동)
+      if (data.action === 'checkout' && data.order) {
+        // 주문 완료 페이지로 이동 (order.id는 문자열이므로 숫자로 변환)
+        const orderId = typeof data.order.id === 'string' ? parseInt(data.order.id) : data.order.id;
+        setTimeout(() => {
+          router.push(`/orders/${orderId}/complete`);
+        }, 2000);
       }
     } catch (error) {
       console.error('AI 채팅 오류:', error);

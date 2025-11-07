@@ -17,6 +17,9 @@ interface CartStore {
   // 장바구니 비우기
   clearCart: () => void;
 
+  // 장바구니 전체 설정 (서버 동기화용)
+  setItems: (items: CartItem[]) => void;
+
   // 총 금액 계산 (할인가 우선 적용)
   getTotalPrice: () => number;
 
@@ -60,6 +63,10 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   clearCart: () => {
     set({ items: [] });
+  },
+
+  setItems: (items) => {
+    set({ items });
   },
 
   getTotalPrice: () => {

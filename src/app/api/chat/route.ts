@@ -6,7 +6,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ShoppingAgent } from '@/lib/shopping-agent';
 import { conversationManager } from '@/lib/conversation-manager';
-import { getServerSession } from '@/lib/supabase-server';
+import { getServerSession, createSupabaseServerClient } from '@/lib/supabase-server';
+import { createOrder } from '@/app/actions/order';
+import { processPayment } from '@/app/actions/payment';
 import type { ChatRequest, ChatResponse, ChatMessage } from '@/types/shopping-agent';
 
 const shoppingAgent = new ShoppingAgent();
@@ -84,22 +86,38 @@ export async function POST(req: NextRequest) {
       for (const productAction of aiResponse.products) {
         const product = products.find((p) => p.id === productAction.id);
         if (product && product.stock >= productAction.quantity) {
+          // 메뉴 상세 정보 조회 (discount_price, category_id 등)
+          const supabase = await createSupabaseServerClient();
+          const { data: menuData } = await supabase
+            .from('menu')
+            .select(`
+              id,
+              discount_price,
+              category_id,
+              cold,
+              hot,
+              marketing,
+              order_no
+            `)
+            .eq('id', parseInt(product.id))
+            .single();
+
           updatedCart = conversationManager.addToCart(userId, {
             id: parseInt(product.id),
             name: product.name,
             description: product.description || '',
             price: product.price,
-            discountPrice: undefined,
-            image: product.image_url,
+            discountPrice: menuData?.discount_price || undefined,
+            image: product.image_url || null,
             images: [],
             category: product.category || '',
-            categoryId: undefined,
-            tags: [],
+            categoryId: menuData?.category_id || undefined,
+            tags: menuData?.marketing || [],
             available: true,
-            popular: false,
-            cold: false,
-            hot: false,
-            orderNo: 0,
+            popular: (menuData?.marketing || []).includes('E0202'), // E0202 = Best
+            cold: menuData?.cold || false,
+            hot: menuData?.hot || false,
+            orderNo: menuData?.order_no || 0,
             quantity: productAction.quantity,
           });
         }
@@ -112,6 +130,98 @@ export async function POST(req: NextRequest) {
           productAction.quantity
         );
       }
+    } else if (aiResponse.action === 'checkout') {
+      // 결제 진행: 주문 생성 및 결제 처리
+      if (updatedCart.length === 0) {
+        // 장바구니가 비어있으면 에러 메시지 반환
+        return NextResponse.json({
+          message: '장바구니가 비어있습니다. 주문할 상품을 먼저 추가해주세요.',
+          action: 'chat',
+          cart: updatedCart,
+        });
+      }
+
+      // 사용자 정보 가져오기
+      const userEmail = session.user.email || '';
+      const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '고객';
+      const userPhone = session.user.phone || '010-0000-0000'; // 기본값 사용
+
+      // 장바구니 아이템을 주문 형식으로 변환
+      const orderItems = updatedCart.map(item => ({
+        menuId: item.id,
+        menuName: item.name,
+        menuPrice: item.discountPrice ?? item.price,
+        quantity: item.quantity,
+        temperature: item.cold ? 'cold' : item.hot ? 'hot' : undefined,
+      }));
+
+      // 총 금액 계산
+      const totalAmount = updatedCart.reduce((sum, item) => {
+        const price = item.discountPrice ?? item.price;
+        return sum + price * item.quantity;
+      }, 0);
+
+      // 주문 생성
+      const orderResult = await createOrder({
+        customerName: userName,
+        customerPhone: userPhone,
+        customerEmail: userEmail || undefined,
+        items: orderItems,
+        totalAmount,
+        discountAmount: 0,
+        orderNotes: 'AI 추천을 통한 주문',
+      });
+
+      if (!orderResult.success || !orderResult.orderId) {
+        return NextResponse.json({
+          message: `주문 생성에 실패했습니다: ${orderResult.error || '알 수 없는 오류'}`,
+          action: 'chat',
+          cart: updatedCart,
+        });
+      }
+
+      // 결제 처리 (기본 결제 방법: 카드)
+      const paymentResult = await processPayment({
+        orderId: orderResult.orderId,
+        paymentMethod: 'card',
+        amount: totalAmount,
+      });
+
+      if (!paymentResult.success) {
+        return NextResponse.json({
+          message: `결제 처리에 실패했습니다: ${paymentResult.error || '알 수 없는 오류'}`,
+          action: 'chat',
+          cart: updatedCart,
+        });
+      }
+
+      // 주문 완료 후 장바구니 비우기
+      updatedCart = [];
+      conversationManager.clearCart(userId);
+
+      // 주문 정보 조회 (주문 완료 페이지로 이동하기 위해)
+      const supabaseClient = await createSupabaseServerClient();
+      const { data: orderData } = await supabaseClient
+        .from('orders')
+        .select('*')
+        .eq('id', orderResult.orderId)
+        .single();
+
+      if (orderData) {
+        order = {
+          id: orderData.id.toString(),
+          order_number: orderData.order_number,
+          user_id: (orderData.user_id as string) || userId,
+          status: orderData.status,
+          items: orderData.items || [],
+          final_amount: orderData.final_amount,
+          created_at: orderData.created_at,
+          updated_at: orderData.updated_at,
+        };
+      }
+
+      // 성공 메시지 업데이트
+      aiResponse.message = `주문이 완료되었습니다! 주문번호: ${orderResult.orderNumber}\n결제가 정상적으로 처리되었습니다.`;
     } else if (aiResponse.action === 'get_orders') {
       // 주문 내역 조회
       orders = await shoppingAgent.getUserOrders(userId, 10);
