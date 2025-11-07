@@ -3,13 +3,13 @@ import { Receipt, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getRecentOrders } from '@/app/actions/order';
+import { getUserOrders } from '@/app/actions/order';
 import { getOrderStatusLabel } from '@/lib/order-utils';
 import { getPaymentMethodLabel } from '@/lib/payment-utils';
 
 export default async function OrdersPage() {
-  // MVP: 전체 최근 주문 조회 (추후 사용자별 조회로 변경)
-  const orders = await getRecentOrders(50);
+  // 현재 사용자의 주문만 조회
+  const orders = await getUserOrders(50);
 
   return (
     <div className="min-h-screen bg-background pb-24">

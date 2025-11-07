@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, RotateCcw, Home, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ export default function AIRecommendationsPage() {
   const { messages, isLoading, addMessage, clearMessages, setLoading } = useChatStore();
   const { items: cartItems } = useCartStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
   // 메시지 자동 스크롤
   useEffect(() => {
@@ -87,6 +88,9 @@ export default function AIRecommendationsPage() {
 
       // checkout 액션 처리 (결제 완료 시 주문 완료 페이지로 이동)
       if (data.action === 'checkout' && data.order) {
+        // 결제 처리 중 상태로 변경 (사용자 인터렉션 차단)
+        setIsProcessingCheckout(true);
+        
         // 주문 완료 페이지로 이동 (order.id는 문자열이므로 숫자로 변환)
         const orderId = typeof data.order.id === 'string' ? parseInt(data.order.id) : data.order.id;
         setTimeout(() => {
@@ -175,10 +179,10 @@ export default function AIRecommendationsPage() {
             <h1 className="text-xl font-bold">AI 커피 추천</h1>
           </div>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleReset}>
+            <Button variant="ghost" size="sm" onClick={handleReset} disabled={isProcessingCheckout}>
               <RotateCcw className="h-4 w-4" />
             </Button>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/')}>
+            <Button variant="ghost" size="sm" onClick={() => router.push('/')} disabled={isProcessingCheckout}>
               <Home className="h-4 w-4" />
             </Button>
           </div>
@@ -221,7 +225,7 @@ export default function AIRecommendationsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleSendMessage('오늘의 추천 커피가 뭐예요?')}
-              disabled={isLoading}
+              disabled={isLoading || isProcessingCheckout}
               className="flex-shrink-0"
             >
               오늘의 추천
@@ -230,7 +234,7 @@ export default function AIRecommendationsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleSendMessage('아메리카노 2개 장바구니에 담아줘')}
-              disabled={isLoading}
+              disabled={isLoading || isProcessingCheckout}
               className="flex-shrink-0"
             >
               장바구니에 담기
@@ -239,7 +243,7 @@ export default function AIRecommendationsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleSendMessage('자주 주문하는 메뉴 추천해줘')}
-              disabled={isLoading}
+              disabled={isLoading || isProcessingCheckout}
               className="flex-shrink-0"
             >
               자주 주문 메뉴
@@ -248,16 +252,43 @@ export default function AIRecommendationsPage() {
               variant="outline"
               size="sm"
               onClick={() => handleSendMessage('결제할게요')}
-              disabled={isLoading}
+              disabled={isLoading || isProcessingCheckout}
               className="flex-shrink-0"
             >
               결제하기
             </Button>
           </div>
 
-          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading || isProcessingCheckout} />
         </div>
       </div>
+
+      {/* 결제 처리 오버레이 */}
+      {isProcessingCheckout && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-white rounded-2xl p-8 shadow-2xl max-w-sm mx-4 text-center animate-in fade-in zoom-in duration-300">
+            {/* 애니메이션 아이콘 */}
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 border-4 border-purple-200 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-purple-500 animate-pulse" />
+              </div>
+            </div>
+            
+            {/* 메시지 */}
+            <h3 className="text-xl font-bold text-gray-900 mb-2">
+              결제 처리 중
+            </h3>
+            <p className="text-gray-600 mb-4">
+              주문을 완료하고 있어요...
+            </p>
+            <p className="text-sm text-gray-500">
+              잠시만 기다려주세요 ☕️
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { supabase } from '@/lib/supabase'
+import { createSupabaseServerClient, getServerUser } from '@/lib/supabase-server'
 
 // =============================================
 // 타입 정의
@@ -88,7 +88,13 @@ export async function createOrder(
   request: CreateOrderRequest
 ): Promise<CreateOrderResponse> {
   try {
-    // 1. 입력 검증
+    // 1. 현재 사용자 확인
+    const user = await getServerUser()
+    if (!user) {
+      return { success: false, error: '로그인이 필요합니다.' }
+    }
+
+    // 2. 입력 검증
     if (!request.customerName || !request.customerPhone) {
       return { success: false, error: '주문자 정보를 입력해주세요.' }
     }
@@ -97,16 +103,20 @@ export async function createOrder(
       return { success: false, error: '주문 항목이 없습니다.' }
     }
 
-    // 2. 주문 번호 생성 (예: ORD20250128001)
+    // 3. 주문 번호 생성 (예: ORD20250128001)
     const orderNumber = generateOrderNumber()
 
-    // 3. 최종 금액 계산
+    // 4. 최종 금액 계산
     const finalAmount = request.totalAmount - (request.discountAmount || 0)
 
-    // 4. orders 테이블에 주문 생성
+    // 5. 서버 클라이언트 생성
+    const supabase = await createSupabaseServerClient()
+
+    // 6. orders 테이블에 주문 생성 (user_id 포함)
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
+        user_id: user.id,
         order_number: orderNumber,
         customer_name: request.customerName,
         customer_phone: request.customerPhone,
@@ -125,7 +135,7 @@ export async function createOrder(
       return { success: false, error: '주문 생성에 실패했습니다.' }
     }
 
-    // 5. order_items 테이블에 주문 항목 생성
+    // 7. order_items 테이블에 주문 항목 생성
     const orderItems = request.items.map(item => ({
       order_id: order.id,
       menu_id: item.menuId,
@@ -148,7 +158,7 @@ export async function createOrder(
       return { success: false, error: '주문 항목 생성에 실패했습니다.' }
     }
 
-    // 6. 캐시 무효화
+    // 8. 캐시 무효화
     revalidatePath('/orders')
 
     return {
@@ -174,6 +184,7 @@ export async function createOrder(
  */
 export async function getOrderById(orderId: number): Promise<Order | null> {
   try {
+    const supabase = await createSupabaseServerClient()
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
@@ -204,6 +215,7 @@ export async function getOrderById(orderId: number): Promise<Order | null> {
  */
 export async function getOrderByNumber(orderNumber: string): Promise<Order | null> {
   try {
+    const supabase = await createSupabaseServerClient()
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select(`
@@ -227,6 +239,43 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
 }
 
 /**
+ * 현재 사용자의 주문 목록 조회
+ *
+ * @param limit - 조회 개수
+ * @returns 현재 사용자의 주문 목록
+ */
+export async function getUserOrders(limit: number = 50): Promise<Order[]> {
+  try {
+    const user = await getServerUser()
+    if (!user) {
+      return []
+    }
+
+    const supabase = await createSupabaseServerClient()
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        order_items (*),
+        payments (*)
+      `)
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error('사용자 주문 조회 실패:', error)
+      return []
+    }
+
+    return orders as Order[]
+  } catch (error) {
+    console.error('사용자 주문 조회 오류:', error)
+    return []
+  }
+}
+
+/**
  * 연락처로 주문 목록 조회
  *
  * @param phone - 주문자 연락처
@@ -234,6 +283,7 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
  */
 export async function getOrdersByPhone(phone: string): Promise<Order[]> {
   try {
+    const supabase = await createSupabaseServerClient()
     const { data: orders, error } = await supabase
       .from('orders')
       .select(`
@@ -264,6 +314,7 @@ export async function getOrdersByPhone(phone: string): Promise<Order[]> {
  */
 export async function getRecentOrders(limit: number = 50): Promise<Order[]> {
   try {
+    const supabase = await createSupabaseServerClient()
     const { data: orders, error } = await supabase
       .from('orders')
       .select(`
