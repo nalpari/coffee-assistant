@@ -342,7 +342,7 @@ export class ShoppingAgent {
 
         if (firstImage && firstImage.file_uuid && firstImage.menu_type) {
           try {
-            imageUrl = `http://3.35.189.180/minio/images/${firstImage.menu_type}/${firstImage.file_uuid}`;
+            imageUrl = `https://bo.heemina.co.kr/minio/images/${firstImage.menu_type}/${firstImage.file_uuid}`;
           } catch (error) {
             console.warn(`Invalid image URL for menu ${p.id}:`, error);
           }

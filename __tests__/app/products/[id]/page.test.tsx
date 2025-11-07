@@ -95,7 +95,7 @@ describe('ProductDetailPage', () => {
       description: 'Test Description',
       price: 5000,
       discountPrice: undefined,
-      image: 'http://3.35.189.180/minio/images/menu/test-image.jpg', // ✅ 유효한 이미지
+      image: 'https://bo.heemina.co.kr/minio/images/menu/test-image.jpg', // ✅ 유효한 이미지
       images: [
         {
           fileUuid: 'test-image.jpg',
@@ -216,7 +216,7 @@ describe('ProductDetailPage', () => {
       description: 'Test Description',
       price: 5000,
       discountPrice: undefined,
-      image: 'http://3.35.189.180/minio/images/menu/test-image.jpg',
+      image: 'https://bo.heemina.co.kr/minio/images/menu/test-image.jpg',
       images: [],
       category: 'COFFEE',
       categoryId: 1,

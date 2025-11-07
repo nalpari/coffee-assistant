@@ -13,7 +13,7 @@ describe('CartItem', () => {
     description: 'Test Description',
     price: 5000,
     discountPrice: undefined,
-    image: 'http://3.35.189.180/minio/images/menu/test.jpg',
+    image: 'https://bo.heemina.co.kr/minio/images/menu/test.jpg',
     images: [],
     category: 'COFFEE',
     categoryId: 1,
@@ -74,7 +74,7 @@ describe('CartItem', () => {
 
   it('should render image when valid URL exists', () => {
     const mockItem = createMockItem({
-      image: 'http://3.35.189.180/minio/images/menu/test.jpg',
+      image: 'https://bo.heemina.co.kr/minio/images/menu/test.jpg',
     });
 
     render(

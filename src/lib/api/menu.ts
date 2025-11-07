@@ -355,7 +355,7 @@ function mapMenuItemToDisplay(item: MenuItemData): MenuItemDisplay {
   if (firstImage && firstImage.fileUuid && firstImage.menuType) {
     try {
       // URL 유효성 검증을 위해 URL 생성자 사용
-      const url = `http://3.35.189.180/minio/images/${firstImage.menuType}/${firstImage.fileUuid}`;
+      const url = `https://bo.heemina.co.kr/minio/images/${firstImage.menuType}/${firstImage.fileUuid}`;
       new URL(url); // URL 유효성 검증
       imageUrl = url;
     } catch (error) {

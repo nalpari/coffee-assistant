@@ -128,7 +128,7 @@ describe('menu API', () => {
       const result = await getMenuItemById(1);
 
       expect(result).not.toBeNull();
-      expect(result?.image).toBe('http://3.35.189.180/minio/images/menu/test-uuid.jpg');
+      expect(result?.image).toBe('https://bo.heemina.co.kr/minio/images/menu/test-uuid.jpg');
       expect(result?.images).toHaveLength(1);
       expect(result?.images[0].fileUuid).toBe('test-uuid.jpg');
     });
@@ -200,7 +200,7 @@ describe('menu API', () => {
       const result = await getMenuItemById(1);
 
       expect(result).not.toBeNull();
-      expect(result?.image).toBe('http://3.35.189.180/minio/images/menu/first-image.jpg'); // 첫 번째 이미지
+      expect(result?.image).toBe('https://bo.heemina.co.kr/minio/images/menu/first-image.jpg'); // 첫 번째 이미지
       expect(result?.images).toHaveLength(2);
     });
 

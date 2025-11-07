@@ -7,13 +7,7 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
-        port: '',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: '3.35.189.180',
+        hostname: 'bo.heemina.co.kr',
         port: '',
         pathname: '/minio/images/**',
       },
