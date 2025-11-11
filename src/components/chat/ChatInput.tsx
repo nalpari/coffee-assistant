@@ -22,7 +22,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <div className="flex py-8 px-6 flex-col justify-center items-center gap-2.5 rounded-b-[32px] border-t border-[#F5F5F5] bg-white">
+    <div className="flex py-4 sm:py-6 lg:py-8 px-4 sm:px-6 flex-col justify-center items-center gap-2.5 rounded-b-[32px] border-t border-[#F5F5F5] bg-white">
       <form onSubmit={handleSubmit} className="flex items-center gap-4 w-full">
         <div className="flex py-2.5 px-5 justify-between items-center flex-1 rounded-full border-2 border-[#979C9E] bg-white">
           <input

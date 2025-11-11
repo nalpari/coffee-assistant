@@ -27,15 +27,16 @@ export function FooterNavigation() {
       <div className="relative w-full h-[68px] bg-white">
         {/* Border line positioned 10px from top */}
         <div className="absolute top-[10px] left-0 right-0 h-px bg-[#EDEDED]" />
-        {/* Navigation Items Container - Centered */}
-        <div className="relative h-full max-w-[427px] mx-auto">
-          {/* 1. 홈 */}
-          <Link
-            href="/"
-            className="absolute left-[36px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
-            aria-label="홈"
-            aria-current={isHomeActive ? 'page' : undefined}
-          >
+        {/* Navigation Items Container - Responsive Flexbox */}
+        <div className="relative h-full w-full max-w-[600px] mx-auto px-4 sm:px-6">
+          <div className="flex items-end justify-between h-full pb-[10px]">
+            {/* 1. 홈 */}
+            <Link
+              href="/"
+              className="flex flex-col items-center justify-center gap-[6px] min-w-[60px] flex-1"
+              aria-label="홈"
+              aria-current={isHomeActive ? 'page' : undefined}
+            >
             <div className="relative w-5 h-5">
               <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path 
@@ -69,12 +70,12 @@ export function FooterNavigation() {
             </span>
           </Link>
 
-          {/* 2. 찜 */}
-          <button
-            onClick={() => handleComingSoon('찜')}
-            className="absolute left-[108px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
-            aria-label="찜"
-          >
+            {/* 2. 찜 */}
+            <button
+              onClick={() => handleComingSoon('찜')}
+              className="flex flex-col items-center justify-center gap-[6px] min-w-[60px] flex-1"
+              aria-label="찜"
+            >
             <div className="relative w-5 h-5">
               <svg width="22" height="22" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -99,15 +100,15 @@ export function FooterNavigation() {
             </span>
           </button>
 
-          {/* 3. AI - Center button */}
-          <Link
-            href="/ai-recommendations"
-            className="absolute left-[176px] top-[-12px] flex flex-col items-center justify-end gap-[6px] w-[82px] h-[70px]"
-            aria-label="AI"
-            aria-current={isAIActive ? 'page' : undefined}
-          >
-            {/* Icon Container */}
-            <div className="relative w-[42px] h-[42px] flex items-center justify-center">
+            {/* 3. AI - Center button with elevated icon */}
+            <Link
+              href="/ai-recommendations"
+              className="flex flex-col items-center justify-center gap-[6px] min-w-[70px] flex-1"
+              aria-label="AI"
+              aria-current={isAIActive ? 'page' : undefined}
+            >
+            {/* Icon Container - elevated above baseline */}
+            <div className="relative w-[42px] h-[42px] flex items-center justify-center -mt-[22px]">
               <img
                 src="https://api.builder.io/api/v1/image/assets/TEMP/b4d9f6824ed2cce099fd86367b8c233ec9961e82?width=84"
                 alt="AI"
@@ -127,13 +128,13 @@ export function FooterNavigation() {
             </span>
           </Link>
 
-          {/* 4. 주문내역 */}
-          <Link
-            href="/orders"
-            className="absolute left-[247px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
-            aria-label="주문내역"
-            aria-current={isOrdersActive ? 'page' : undefined}
-          >
+            {/* 4. 주문내역 */}
+            <Link
+              href="/orders"
+              className="flex flex-col items-center justify-center gap-[6px] min-w-[60px] flex-1"
+              aria-label="주문내역"
+              aria-current={isOrdersActive ? 'page' : undefined}
+            >
             <svg width="34" height="35" viewBox="0 0 34 35" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M8.5 8.75C8.5 4.97876 8.5 3.09315 9.7448 1.92157C10.9896 0.75 12.9931 0.75 17 0.75H17.7727C21.0339 0.75 22.6645 0.75 23.7969 1.54784C24.1214 1.77643 24.4094 2.04752 24.6523 2.35289C25.5 3.41867 25.5 4.95336 25.5 8.02273V10.5682C25.5 13.5314 25.5 15.0129 25.0311 16.1962C24.2772 18.0986 22.6829 19.5991 20.6616 20.3086C19.4044 20.75 17.8302 20.75 14.6818 20.75C12.8827 20.75 11.9832 20.75 11.2648 20.4978C10.1098 20.0924 9.19875 19.2349 8.76796 18.1479C8.5 17.4717 8.5 16.6251 8.5 14.9318V8.75Z"
@@ -175,12 +176,12 @@ export function FooterNavigation() {
             </svg>
           </Link>
 
-          {/* 5. 마이페이지 */}
-          <button
-            onClick={() => handleComingSoon('마이페이지')}
-            className="absolute left-[319px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
-            aria-label="마이페이지"
-          >
+            {/* 5. 마이페이지 */}
+            <button
+              onClick={() => handleComingSoon('마이페이지')}
+              className="flex flex-col items-center justify-center gap-[6px] min-w-[60px] flex-1"
+              aria-label="마이페이지"
+            >
             <svg width="43" height="35" viewBox="0 0 43 35" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M31.5 4.25C31.5 6.183 29.933 7.75 28 7.75C26.067 7.75 24.5 6.183 24.5 4.25C24.5 2.317 26.067 0.75 28 0.75C29.933 0.75 31.5 2.317 31.5 4.25Z"
@@ -218,7 +219,8 @@ export function FooterNavigation() {
                 <tspan x="0.393555" y="33.8203">마이페이지</tspan>
               </text>
             </svg>
-          </button>
+            </button>
+          </div>
         </div>
       </div>
     </footer>

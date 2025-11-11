@@ -87,7 +87,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
       </div>
 
       {/* 메시지 영역 */}
-      <div className="flex items-start gap-2 w-full max-w-[327px]">
+      <div className="flex items-start gap-2 w-full max-w-[90%] sm:max-w-[80%] lg:max-w-[70%]">
         {/* AI 아이콘 */}
         <div className="flex-shrink-0 w-8 h-8">
           <svg
