@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, FormEvent } from 'react';
-import { Send } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Send, Mic } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
@@ -24,23 +22,36 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <Input
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder="커피 추천을 요청해보세요..."
-        disabled={disabled}
-        className="flex-1"
-        autoComplete="off"
-      />
-      <Button
-        type="submit"
-        size="icon"
-        disabled={disabled || !input.trim()}
-        className="flex-shrink-0"
-      >
-        <Send className="h-4 w-4" />
-      </Button>
-    </form>
+    <div className="flex py-8 px-6 flex-col justify-center items-center gap-2.5 rounded-b-[32px] border-t border-[#F5F5F5] bg-white">
+      <form onSubmit={handleSubmit} className="flex items-center gap-4 w-full">
+        <div className="flex py-2.5 px-5 justify-between items-center flex-1 rounded-full border-2 border-[#979C9E] bg-white">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type a message..."
+            disabled={disabled}
+            className="flex-1 bg-transparent text-base font-normal leading-6 tracking-[-0.08px] text-foreground placeholder:text-[#72777A] outline-none border-none focus:outline-none focus:ring-0"
+            style={{ fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif' }}
+            autoComplete="off"
+          />
+          <button
+            type="button"
+            className="ml-2 flex-shrink-0"
+            aria-label="음성 입력"
+          >
+            <Mic className="w-6 h-6 text-[#72777A]" strokeWidth={1.5} />
+          </button>
+        </div>
+        <button
+          type="submit"
+          disabled={disabled || !input.trim()}
+          className="w-[44px] h-[44px] rounded-full bg-[#1C1C1C] flex items-center justify-center flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:bg-[#2C2C2C]"
+          aria-label="메시지 전송"
+        >
+          <Send className="w-5 h-5 text-white" strokeWidth={2} />
+        </button>
+      </form>
+    </div>
   );
 }

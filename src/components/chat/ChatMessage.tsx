@@ -1,6 +1,5 @@
 'use client';
 
-import { Sparkles, User } from 'lucide-react';
 import type { ChatMessage as ChatMessageType } from '@/types/chat';
 import { cn } from '@/lib/utils';
 
@@ -8,77 +7,144 @@ interface ChatMessageProps {
   message: ChatMessageType;
 }
 
+function formatTimestamp(date: Date): string {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? '오후' : '오전';
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  const displayMinutes = minutes.toString().padStart(2, '0');
+  
+  const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const dayName = days[date.getDay()];
+  
+  return `${period} ${displayHours}:${displayMinutes}  ${dayName}`;
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === 'user';
 
-  return (
-    <div
-      className={cn(
-        'flex gap-3 mb-6 animate-in fade-in-50 slide-in-from-bottom-3 duration-300',
-        isUser && 'flex-row-reverse'
-      )}
-    >
-      {/* 아바타 */}
-      <div
-        className={cn(
-          'flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-md',
-          isUser 
-            ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' 
-            : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white'
-        )}
-      >
-        {isUser ? <User className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-      </div>
-
-      {/* 메시지 버블 컨테이너 */}
-      <div className="flex-1 max-w-[75%] flex flex-col gap-1">
-        {/* 발신자 이름 */}
-        <span className={cn(
-          'text-xs font-medium px-2',
-          isUser ? 'text-right text-blue-600' : 'text-left text-purple-600'
-        )}>
-          {isUser ? '나' : 'AI 어시스턴트'}
-        </span>
-
-        {/* 메시지 버블 with 말풍선 꼬리 */}
-        <div className="relative">
-          {/* 말풍선 꼬리 */}
-          <div
-            className={cn(
-              'absolute top-2 w-0 h-0',
-              isUser
-                ? 'right-0 translate-x-1 border-l-[12px] border-l-blue-500 border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent'
-                : 'left-0 -translate-x-1 border-r-[12px] border-r-white border-t-[8px] border-t-transparent border-b-[8px] border-b-transparent'
-            )}
-          />
-
-          {/* 메시지 내용 */}
-          <div
-            className={cn(
-              'rounded-2xl px-4 py-3 shadow-sm',
-              isUser
-                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
-                : 'bg-white text-gray-800 border border-gray-100'
-            )}
+  if (isUser) {
+    return (
+      <div className="flex flex-col items-end gap-2 mb-8 animate-in fade-in-50 slide-in-from-bottom-3 duration-300">
+        {/* 시간 표시 */}
+        <div className="flex pr-5 justify-end items-center">
+          <span
+            className="text-[#72777A] text-right"
+            style={{
+              fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+              fontSize: '12px',
+              fontWeight: 500,
+              lineHeight: '16px',
+              letterSpacing: '-0.3px',
+            }}
           >
-            <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
-              {message.content}
-            </p>
-          </div>
+            {formatTimestamp(message.timestamp)}
+          </span>
         </div>
 
-        {/* 타임스탬프 */}
-        <span
-          className={cn(
-            'text-xs px-2',
-            isUser ? 'text-right text-gray-500' : 'text-left text-gray-500'
-          )}
+        {/* 메시지 버블 */}
+        <div
+          className="px-4 py-4 bg-[#4A97F7]"
+          style={{
+            borderRadius: '24px 24px 0 24px',
+          }}
         >
-          {message.timestamp.toLocaleTimeString('ko-KR', {
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
+          <p
+            className="text-white text-right"
+            style={{
+              fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+              fontSize: '16px',
+              fontWeight: 400,
+              lineHeight: '24px',
+              letterSpacing: '-0.4px',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {message.content}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-start gap-4 mb-8 animate-in fade-in-50 slide-in-from-bottom-3 duration-300">
+      {/* 시간 표시 */}
+      <div className="flex pl-10 justify-center items-center gap-2.5">
+        <span
+          className="text-[#72777A]"
+          style={{
+            fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+            fontSize: '12px',
+            fontWeight: 500,
+            lineHeight: '16px',
+            letterSpacing: '-0.3px',
+          }}
+        >
+          {formatTimestamp(message.timestamp)}
         </span>
+      </div>
+
+      {/* 메시지 영역 */}
+      <div className="flex items-start gap-2 w-full max-w-[327px]">
+        {/* AI 아이콘 */}
+        <div className="flex-shrink-0 w-8 h-8">
+          <svg
+            width="32"
+            height="32"
+            viewBox="0 0 32 32"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <circle cx="16" cy="16" r="16" fill="url(#gradient)" />
+            <path
+              d="M16 8L17.5 13L22 13.5L17.5 15L16 20L14.5 15L10 13.5L14.5 13L16 8Z"
+              fill="white"
+            />
+            <path
+              d="M21 10L21.5 12L23 12.5L21.5 13L21 15L20.5 13L19 12.5L20.5 12L21 10Z"
+              fill="white"
+              opacity="0.8"
+            />
+            <defs>
+              <linearGradient
+                id="gradient"
+                x1="0"
+                y1="0"
+                x2="32"
+                y2="32"
+                gradientUnits="userSpaceOnUse"
+              >
+                <stop stopColor="#4A97F7" />
+                <stop offset="1" stopColor="#00D4FF" />
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+
+        {/* 메시지 버블 */}
+        <div
+          className="flex px-4 py-4 items-start gap-2.5 bg-[#F2F4F5] flex-1"
+          style={{
+            borderRadius: '0 24px 24px 24px',
+          }}
+        >
+          <p
+            className="text-[#303437]"
+            style={{
+              fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+              fontSize: '16px',
+              fontWeight: 400,
+              lineHeight: '24px',
+              letterSpacing: '-0.4px',
+              whiteSpace: 'pre-wrap',
+              wordBreak: 'break-word',
+            }}
+          >
+            {message.content}
+          </p>
+        </div>
       </div>
     </div>
   );

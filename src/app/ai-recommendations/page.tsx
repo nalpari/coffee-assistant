@@ -177,7 +177,7 @@ export default function AIRecommendationsPage() {
       />
 
       {/* 채팅 영역 */}
-      <div className="flex-1 overflow-y-auto pb-48">
+      <div className="flex-1 overflow-y-auto pb-28 bg-white">
         <div className="container mx-auto px-4 py-6 max-w-3xl">
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
@@ -204,48 +204,8 @@ export default function AIRecommendationsPage() {
       </div>
 
       {/* 입력 영역 */}
-      <div className="fixed bottom-16 left-0 right-0 bg-white/80 backdrop-blur-sm border-t p-4 pb-safe">
+      <div className="fixed bottom-0 left-0 right-0">
         <div className="container mx-auto max-w-3xl">
-          {/* 추천 프롬프트 버튼 */}
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSendMessage('오늘의 추천 커피가 뭐예요?')}
-              disabled={isLoading || isProcessingCheckout}
-              className="flex-shrink-0"
-            >
-              오늘의 추천
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSendMessage('아메리카노 2개 장바구니에 담아줘')}
-              disabled={isLoading || isProcessingCheckout}
-              className="flex-shrink-0"
-            >
-              장바구니에 담기
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSendMessage('자주 주문하는 메뉴 추천해줘')}
-              disabled={isLoading || isProcessingCheckout}
-              className="flex-shrink-0"
-            >
-              자주 주문 메뉴
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleSendMessage('결제할게요')}
-              disabled={isLoading || isProcessingCheckout}
-              className="flex-shrink-0"
-            >
-              결제하기
-            </Button>
-          </div>
-
           <ChatInput onSendMessage={handleSendMessage} disabled={isLoading || isProcessingCheckout} />
         </div>
       </div>

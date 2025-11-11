@@ -6,6 +6,11 @@ import Link from 'next/link';
 export function FooterNavigation() {
   const pathname = usePathname();
 
+  // AI 추천 페이지에서는 푸터 숨김
+  if (pathname === '/ai-recommendations') {
+    return null;
+  }
+
   const handleComingSoon = (featureName: string) => {
     alert(`${featureName} 기능은 준비중입니다.`);
   };
@@ -17,31 +22,17 @@ export function FooterNavigation() {
   const isProfileActive = pathname === '/profile';
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 z-50 lg:hidden overflow-hidden">
-      <div className="relative h-[93px] mx-auto" style={{ maxWidth: 'calc(100% + 52px)', marginLeft: '-26px', marginRight: '-26px' }}>
-        {/* Subtract shape - Bottom bar with center cutout */}
-        <div className="absolute left-[26px] right-[26px] top-[35px] h-[58px]">
-          <svg className="w-full h-full" viewBox="0 0 427 58" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M0 1C0 0.447715 0.447715 0 1 0H426C426.552 0 427 0.447715 427 1V57C427 57.5523 426.552 58 426 58H1C0.447716 58 0 57.5523 0 57V1ZM194 0C194 0 194 0 194 0C194 8.28427 200.716 15 209 15H218C226.284 15 233 8.28427 233 0H194Z"
-              fill="white"
-            />
-            <rect x="0.5" y="0.5" width="426" height="57" stroke="#EDEDED" />
-            <path
-              d="M194 0C194 8.28427 200.716 15 209 15H218C226.284 15 233 8.28427 233 0"
-              stroke="#EDEDED"
-            />
-          </svg>
-        </div>
-
+    <footer className="fixed bottom-0 left-0 right-0 z-50 lg:hidden">
+      {/* Flat background bar */}
+      <div className="relative w-full h-[68px] bg-white">
+        {/* Border line positioned 10px from top */}
+        <div className="absolute top-[10px] left-0 right-0 h-px bg-[#EDEDED]" />
         {/* Navigation Items Container - Centered */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[427px] h-full">
+        <div className="relative h-full max-w-[427px] mx-auto">
           {/* 1. 홈 */}
           <Link
             href="/"
-            className="absolute left-[36px] top-[36px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[56px]"
+            className="absolute left-[36px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
             aria-label="홈"
             aria-current={isHomeActive ? 'page' : undefined}
           >
@@ -81,7 +72,7 @@ export function FooterNavigation() {
           {/* 2. 찜 */}
           <button
             onClick={() => handleComingSoon('찜')}
-            className="absolute left-[108px] top-[36px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[56px] p-[10px]"
+            className="absolute left-[108px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
             aria-label="찜"
           >
             <div className="relative w-5 h-5">
@@ -108,24 +99,26 @@ export function FooterNavigation() {
             </span>
           </button>
 
-          {/* 3. AI - Center elevated button */}
+          {/* 3. AI - Center button */}
           <Link
             href="/ai-recommendations"
-            className="absolute left-[176px] top-0 w-[82px] h-[82px]"
+            className="absolute left-[176px] top-[-12px] flex flex-col items-center justify-end gap-[6px] w-[82px] h-[70px]"
             aria-label="AI"
             aria-current={isAIActive ? 'page' : undefined}
           >
-            <div className="relative w-[82px] h-[82px] flex items-center justify-center">
-              <img 
-                src="https://api.builder.io/api/v1/image/assets/TEMP/7c86ce6707d9012b72f3daaa9810f7307abc2b45?width=84" 
-                alt="AI" 
-                className="w-[42px] h-[42px]"
+            {/* Icon Container */}
+            <div className="relative w-[42px] h-[42px] flex items-center justify-center">
+              <img
+                src="https://api.builder.io/api/v1/image/assets/TEMP/b4d9f6824ed2cce099fd86367b8c233ec9961e82?width=84"
+                alt="AI"
+                className="w-[42px] h-[42px] object-contain"
               />
             </div>
-            <span 
-              className="absolute left-[35px] top-[72px] w-[9px] h-[7px] text-[10px] font-medium leading-[150%] text-center"
-              style={{ 
-                color: '#C4C7CC',
+            {/* AI Text */}
+            <span
+              className="text-[10px] font-medium leading-[150%]"
+              style={{
+                color: isAIActive ? '#1C1C1C' : '#C4C7CC',
                 letterSpacing: '-0.25px',
                 fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif'
               }}
@@ -137,7 +130,7 @@ export function FooterNavigation() {
           {/* 4. 주문내역 */}
           <Link
             href="/orders"
-            className="absolute left-[247px] top-[36px] flex flex-col items-center justify-center gap-[10px] w-[72px] h-[56px] p-[10px]"
+            className="absolute left-[247px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
             aria-label="주문내역"
             aria-current={isOrdersActive ? 'page' : undefined}
           >
@@ -185,7 +178,7 @@ export function FooterNavigation() {
           {/* 5. 마이페이지 */}
           <button
             onClick={() => handleComingSoon('마이페이지')}
-            className="absolute left-[319px] top-[36px] flex flex-col items-center justify-center gap-[10px] w-[72px] h-[56px] p-[10px]"
+            className="absolute left-[319px] top-[10px] flex flex-col items-center justify-center gap-[6px] w-[72px] h-[48px]"
             aria-label="마이페이지"
           >
             <svg width="43" height="35" viewBox="0 0 43 35" fill="none" xmlns="http://www.w3.org/2000/svg">
