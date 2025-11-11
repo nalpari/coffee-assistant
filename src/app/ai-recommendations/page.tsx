@@ -2,10 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Sparkles, RotateCcw, Home, LogIn } from 'lucide-react';
+import { Sparkles, LogIn, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
+import { AiRecommendationHeader } from '@/components/layout/AiRecommendationHeader';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
 import { useAuth } from '@/contexts/AuthContext';
@@ -170,24 +171,10 @@ export default function AIRecommendationsPage() {
   return (
     <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
       {/* 헤더 */}
-      <div className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10 shadow-sm">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-white" />
-            </div>
-            <h1 className="text-xl font-bold">AI 커피 추천</h1>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={handleReset} disabled={isProcessingCheckout}>
-              <RotateCcw className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="sm" onClick={() => router.push('/')} disabled={isProcessingCheckout}>
-              <Home className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      <AiRecommendationHeader
+        onClose={() => router.push('/')}
+        disabled={isProcessingCheckout}
+      />
 
       {/* 채팅 영역 */}
       <div className="flex-1 overflow-y-auto pb-48">

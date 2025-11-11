@@ -1,88 +1,175 @@
 'use client';
 
-import { Search, ShoppingCart } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/contexts/AuthContext';
-import { GoogleSignInButton } from '@/components/auth/GoogleSignInButton';
-import { UserAvatar } from '@/components/auth/UserAvatar';
-import { LogoutButton } from '@/components/auth/LogoutButton';
-
 interface HeaderProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
+  points?: number;
+  notificationCount?: number;
   cartItemCount?: number;
   onCartClick?: () => void;
 }
 
-export function Header({ searchQuery, onSearchChange, cartItemCount = 0, onCartClick }: HeaderProps) {
-  const { user, loading, signOut } = useAuth();
-
+export function Header({ 
+  points = 1200, 
+  notificationCount = 2, 
+  cartItemCount = 2, 
+  onCartClick 
+}: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center gap-4 px-4">
-        {/* 좌측: Logo */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="text-2xl">☕</span>
-          <h1 className="text-xl font-bold hidden sm:block">Coffee Assistant</h1>
+    <header className="sticky top-0 z-50 w-full border-b bg-white" style={{ borderBottomColor: '#EEE' }}>
+      <div className="flex h-[68px] items-center justify-between px-6">
+        {/* 왼쪽: 포인트 */}
+        <div className="flex items-center gap-1.5 rounded-full bg-[#F8F8F8] px-2.5 py-2.5">
+          <span className="text-sm font-black leading-[150%] tracking-[-0.35px]" style={{ color: '#1C1C1C' }}>
+            P
+          </span>
+          <span className="text-sm font-medium leading-[150%] tracking-[-0.35px]" style={{ color: '#1C1C1C' }}>
+            {points.toLocaleString()}
+          </span>
         </div>
 
-        {/* 중앙: Search Bar */}
-        <div className="flex-1 flex justify-center px-4 md:px-8 min-w-0">
-          <div className="relative w-full max-w-2xl">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="메뉴 검색..."
-              value={searchQuery}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-10 w-full"
-            />
+        {/* 중앙: 로고 */}
+        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="flex items-center gap-1.5">
+            <div className="relative h-[45px] w-[45px]">
+              {/* 고래 아이콘 */}
+              <svg
+                width="45"
+                height="34"
+                viewBox="0 0 45 34"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute left-0 top-[11px]"
+              >
+                <g clipPath="url(#clip0_whale)">
+                  <path
+                    d="M44.6858 1.16566C44.5867 0.88855 43.882 -0.503182 43.7539 0.414314C43.6617 1.07892 43.8092 1.63313 43.4875 2.30844C43.3657 2.56415 43.2155 2.7686 43.0441 2.93644C42.8728 3.10428 42.681 3.23495 42.4749 3.34309C41.7081 3.74467 40.7553 3.82634 40.0079 4.3231C39.417 4.71623 38.9969 5.31889 38.7857 5.988C38.7766 6.01785 38.7493 6.037 38.7192 6.037C38.5376 6.03587 38.4323 5.84832 38.2666 5.7644C37.5317 5.39042 36.7826 5.28453 35.9573 5.37014C34.6378 5.50644 33.8107 6.5608 32.419 5.55206C32.3063 5.47039 31.3761 4.40928 31.2811 4.79959C31.1729 5.24454 31.3853 5.87761 31.5503 6.28595C31.7399 6.74948 32.0068 7.20175 32.3546 7.56334C32.8447 8.07419 33.4026 8.52139 34.0088 8.89199C34.2029 9.01027 34.401 9.1139 34.6014 9.20796C34.6879 9.24852 34.775 9.28794 34.8621 9.32568C35.2645 9.5014 35.6744 9.6546 36.0819 9.83821C36.4525 10.0055 36.8236 10.1716 37.1942 10.3384C37.3849 10.4245 37.575 10.5124 37.7668 10.5963C37.875 10.6431 38.052 10.6616 38.0993 10.7827C38.118 10.8306 38.1186 10.883 38.1067 10.9337C37.7298 11.5893 37.2033 12.1255 36.5487 12.5197C36.0392 12.8256 35.486 12.9861 34.9236 13.1584C33.8967 13.4738 32.8835 13.7177 31.7991 13.6687C30.5445 13.6124 29.2529 13.2198 28.0177 12.9968C26.6499 12.7501 25.278 12.491 23.9529 12.0663C21.5462 11.2947 19.1429 10.1429 16.7488 9.44959C15.9428 9.21641 14.9284 9.12066 14.185 8.803C13.8719 8.66895 13.5822 8.41381 13.2759 8.27301C12.3805 7.86241 11.3918 8.01167 10.407 7.79877C8.19617 7.32059 4.51841 5.64894 2.31836 6.2499C1.81004 6.38845 1.46167 6.87001 1.28863 6.92014C1.00686 7.00124 0.797958 6.86494 0.446177 7.06094C-0.339923 7.49857 0.104072 9.19332 0.348839 9.89003C0.904403 11.4716 1.94722 12.2009 3.00997 13.364C4.7091 15.2232 6.24942 17.1979 8.19788 18.82C9.04147 19.5223 9.92263 20.1329 10.8476 20.6809C10.797 20.7428 10.7486 20.8065 10.7156 20.878C10.6245 21.0751 10.6535 21.2954 10.6251 21.5021C10.5898 21.76 10.46 21.9639 10.3404 22.1869C10.0974 22.6392 10.3057 23.0256 10.4418 23.4835C10.6051 24.0338 10.5829 24.5502 10.4577 25.1045C10.3251 25.6953 10.5277 25.9927 10.7543 26.5182C10.8926 26.8409 10.9529 27.1912 10.9985 27.537C11.0451 27.8952 11.1453 28.2461 11.2318 28.5987C11.3013 28.8815 11.463 29.0583 11.6127 29.3027C11.7459 29.5201 11.866 29.7449 11.9969 29.9628C12.2502 30.3853 12.5525 30.8054 13.0107 31.0262C13.3738 31.2008 13.7734 31.1636 14.0097 30.8066C14.2504 30.4444 14.0398 29.9144 14.07 29.501C14.1093 28.9738 14.0267 28.4551 14.029 27.9313C14.0307 27.4559 14.1298 27.056 14.2277 26.5959C14.3244 26.1414 14.4269 25.7116 14.5852 25.2729C14.74 24.8437 14.9278 24.4641 14.9295 24.0095C14.9312 23.5432 14.7918 23.154 14.6204 22.7271C14.5584 22.5733 14.4964 22.4196 14.4451 22.2619L16.4107 22.9079C16.6196 23.319 16.9896 23.6434 17.3351 24.0349C17.9817 24.7682 18.3198 25.5798 18.5259 26.5221C18.7456 27.5269 19.2727 27.8423 19.9996 28.4934C20.4459 28.8933 20.7914 29.3912 21.1096 29.893C21.4398 30.4117 21.8462 30.8826 22.2333 31.3647C22.5441 31.7516 22.9209 31.911 23.3273 32.1825C23.6888 32.4236 24.036 32.6855 24.3946 32.9299C25.0891 33.4025 25.8581 33.8373 26.7233 33.8547C27.4087 33.8683 27.9978 33.5298 28.106 32.8122C28.2158 32.084 27.5094 31.4154 27.2595 30.7564C26.9402 29.9167 26.4398 29.1749 26.0658 28.365C25.7266 27.6317 25.5911 26.9451 25.4118 26.1661C25.2342 25.3973 25.0822 24.6623 25.0105 23.8744C24.9906 23.6547 24.9775 23.4396 24.9621 23.2278C28.9734 22.6815 32.822 20.8115 35.8064 18.1407C36.074 17.9014 36.3295 17.6496 36.5823 17.3945C37.0599 16.9129 37.5272 16.424 38.0372 15.9796C38.6958 15.4051 39.2576 14.6943 39.6606 13.9216C40.1433 12.994 40.3864 11.961 40.5253 10.9326C40.5811 10.5203 40.5788 10.1345 40.8469 9.79372C41.0752 9.50309 41.3917 9.28681 41.6973 9.08349C42.0929 8.82046 42.546 8.5856 42.8648 8.22682C43.2593 7.78244 43.6196 7.28567 43.9264 6.75342C44.9032 5.06374 45.3483 3.02036 44.6863 1.16566H44.6858ZM16.2621 22.4573C15.6263 22.2788 14.9523 22.0495 14.3643 21.8287C13.9664 21.6795 13.6078 21.5342 13.3266 21.4114C12.5109 21.0549 11.776 20.6719 11.0998 20.263C8.12104 18.4629 6.28073 16.1621 3.73231 13.4288C2.5506 12.1615 1.25391 11.239 0.676713 9.50028C0.433654 8.76696 -0.00749553 7.34368 1.15942 7.34819C2.1806 7.35213 4.81839 8.36932 5.88114 8.76865C7.42886 9.34933 10.0809 10.3198 11.1516 11.5448C11.8409 12.3344 11.9792 13.2553 12.4853 14.1227C12.9651 14.9455 13.6636 15.6659 14.4457 16.2111C14.8049 16.4612 15.168 16.5378 15.4435 16.9005C15.6741 17.2046 15.8101 17.5775 15.8784 17.9492C15.9843 18.5248 15.9456 19.1157 15.961 19.7003C15.9729 20.1644 16.0378 20.6043 16.1875 21.0447C16.315 21.4193 16.2678 21.7054 16.245 22.1064C16.2382 22.2314 16.245 22.3475 16.2627 22.4567L16.2621 22.4573ZM30.6048 21.0115C28.8089 21.8845 26.877 22.4855 24.9149 22.7378C24.8693 22.3796 24.7925 22.0304 24.6325 21.6845C24.2995 20.9636 23.8049 20.4623 23.2328 19.9245C23.156 19.8518 23.0791 19.7792 23.0029 19.7065C24.2893 19.9076 25.5866 20.2004 26.8434 20.3153C27.0933 20.3384 27.3159 20.3503 27.5168 20.3525C28.9239 20.3666 29.278 19.8929 30.6811 19.2413C31.5532 18.8363 32.3211 18.8053 33.213 18.5631C34.0259 18.3418 34.6993 17.9166 35.4768 17.653C34.0606 18.994 32.4008 20.1385 30.6048 21.0115Z"
+                    fill="#1C1C1C"
+                  />
+                </g>
+                <defs>
+                  <clipPath id="clip0_whale">
+                    <rect width="44.8594" height="33.8561" fill="white" />
+                  </clipPath>
+                </defs>
+              </svg>
+              {/* 별 아이콘 */}
+              <svg
+                width="22"
+                height="16"
+                viewBox="0 0 22 16"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="absolute left-[7px] top-0"
+              >
+                <g clipPath="url(#clip0_stars)">
+                  <path d="M20.6694 13.0988L20.4165 13.4288L20.7475 13.1766L20.8448 13.9041L20.9422 13.1766L21.2732 13.4288L21.0203 13.0988L21.75 13.0017L21.0203 12.9047L21.2732 12.5747L20.9422 12.8268L20.8448 12.0994L20.7475 12.8268L20.4165 12.5747L20.6694 12.9047L19.9397 13.0017L20.6694 13.0988Z" fill="#1C1C1C"/>
+                  <path d="M17.4807 14.6123L17.1234 15.0789L17.5914 14.7222L17.729 15.75L17.8665 14.7222L18.3351 15.0789L17.9772 14.6123L19.0083 14.4746L17.9772 14.3375L18.3351 13.8709L17.8665 14.2277L17.729 13.1993L17.5914 14.2277L17.1234 13.8709L17.4807 14.3375L16.4496 14.4746L17.4807 14.6123Z" fill="#1C1C1C"/>
+                  <path d="M14.8468 11.9582L14.3963 12.5456L14.9855 12.0965L15.1592 13.3916L15.3329 12.0965L15.9227 12.5456L15.4716 11.9582L16.7708 11.785L15.4716 11.6119L15.9227 11.0239L15.3329 11.4736L15.1592 10.1785L14.9855 11.4736L14.3963 11.0239L14.8468 11.6119L13.5476 11.785L14.8468 11.9582Z" fill="#1C1C1C"/>
+                  <path d="M0.817163 9.86358L0.533901 10.2337L0.90459 9.95132L1.01416 10.7659L1.12316 9.95132L1.49443 10.2337L1.21058 9.86358L2.02773 9.75493L1.21058 9.64628L1.49443 9.27616L1.12316 9.55912L1.01416 8.74393L0.90459 9.55912L0.533901 9.27616L0.817163 9.64628L1.52588e-05 9.75493L0.817163 9.86358Z" fill="#1C1C1C"/>
+                  <path d="M3.72554 5.54942L3.33387 6.06015L3.84619 5.6697L3.99715 6.79515L4.14752 5.6697L4.66042 6.06015L4.26875 5.54942L5.39772 5.39894L4.26875 5.24845L4.66042 4.73772L4.14752 5.12818L3.99715 4.00272L3.84619 5.12818L3.33387 4.73772L3.72554 5.24845L2.59657 5.39894L3.72554 5.54942Z" fill="#1C1C1C"/>
+                  <path d="M8.44076 2.68146L7.76175 3.56753L8.65 2.89063L8.9117 4.84173L9.17281 2.89063L10.0617 3.56753L9.38264 2.68146L11.3398 2.42115L9.38264 2.16027L10.0617 1.2742L9.17281 1.9511L8.9117 0L8.65 1.9511L7.76175 1.2742L8.44076 2.16027L6.48299 2.42115L8.44076 2.68146Z" fill="#1C1C1C"/>
+                  <path d="M8.15225 10.1936L7.12644 11.5311L8.46815 10.5085L8.86332 13.4555L9.25848 10.5085L10.6002 11.5311L9.57439 10.1936L12.5306 9.79966L9.57439 9.40572L10.6002 8.06819L9.25848 9.09081L8.86332 6.14382L8.46815 9.09081L7.12644 8.06819L8.15225 9.40572L5.19606 9.79966L8.15225 10.1936Z" fill="#1C1C1C"/>
+                </g>
+                <defs>
+                  <clipPath id="clip0_stars">
+                    <rect width="21.75" height="15.75" fill="white" />
+                  </clipPath>
+                </defs>
+              </svg>
+            </div>
+            <div className="pt-1.5">
+              <div className="leading-[120%] capitalize" style={{ color: '#1C1C1C' }}>
+                <span className="text-sm font-bold">WHALE</span>
+                <br />
+                <span className="text-[11px] font-medium">Pickup Order</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* 우측: Cart, Logout, Avatar */}
-        <div className="flex items-center gap-3 shrink-0">
-          {loading ? (
-            <div className="text-sm text-muted-foreground">로딩 중...</div>
-          ) : user ? (
-            <>
-              {/* Cart Icon */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="relative"
-                onClick={onCartClick}
-                aria-label={`장바구니, ${cartItemCount}개 아이템`}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartItemCount > 0 && (
-                  <Badge
-                    className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs font-semibold bg-gradient-to-br from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/50 ring-2 ring-white animate-pulse"
-                    variant="destructive"
-                  >
-                    {cartItemCount}
-                  </Badge>
-                )}
-              </Button>
-
-              {/* Logout Icon Button */}
-              <LogoutButton onSignOut={signOut} loading={loading} />
-
-              {/* User Avatar */}
-              <UserAvatar
-                avatarUrl={user.user_metadata?.avatar_url}
-                userName={user.user_metadata?.full_name || user.email}
-                userEmail={user.email}
-                size={32}
+        {/* 우측: 알림 & 장바구니 */}
+        <div className="flex items-center gap-1.5">
+          {/* 알림 */}
+          <button
+            type="button"
+            className="relative flex h-8 w-8 cursor-pointer items-center justify-center"
+            aria-label={`알림 ${notificationCount}개`}
+          >
+            <svg
+              width="30"
+              height="31"
+              viewBox="0 0 30 31"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2.90837 19.491C2.83489 20.887 2.91936 22.373 1.67213 23.3084C1.09164 23.7438 0.75 24.427 0.75 25.1527C0.75 26.1508 1.5318 27 2.55 27H16.95C17.9682 27 18.75 26.1508 18.75 25.1527C18.75 24.427 18.4084 23.7438 17.8279 23.3084C16.5806 22.373 16.6651 20.887 16.5916 19.491C16.4001 15.8522 13.3938 13 9.75 13C6.10617 13 3.09988 15.8522 2.90837 19.491Z"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
               />
-            </>
-          ) : (
-            <div className="w-full sm:w-48">
-              <GoogleSignInButton />
-            </div>
-          )}
+              <path
+                d="M8.25 11.125C8.25 11.9534 8.92157 13 9.75 13C10.5784 13 11.25 11.9534 11.25 11.125C11.25 10.2966 10.5784 10 9.75 10C8.92157 10 8.25 10.2966 8.25 11.125Z"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+              />
+              <path
+                d="M12.75 27C12.75 28.6569 11.4069 30 9.75 30C8.09315 30 6.75 28.6569 6.75 27"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {notificationCount > 0 && (
+              <div className="absolute right-0 top-0 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1C1C1C] ring-2 ring-white">
+                <span className="text-[10px] font-medium text-white">{notificationCount}</span>
+              </div>
+            )}
+          </button>
+
+          {/* 장바구니 */}
+          <button
+            type="button"
+            className="relative flex h-8 w-8 cursor-pointer items-center justify-center"
+            onClick={onCartClick}
+            aria-label={`장바구니 ${cartItemCount}개`}
+          >
+            <svg
+              width="30"
+              height="31"
+              viewBox="0 0 30 31"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.75 10L0.75 14V28C0.75 28.5304 0.960714 29.0391 1.33579 29.4142C1.71086 29.7893 2.21957 30 2.75 30H16.75C17.2804 30 17.7891 29.7893 18.1642 29.4142C18.5393 29.0391 18.75 28.5304 18.75 28V14L15.75 10H3.75Z"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M0.75 14H18.75"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M13.75 18C13.75 19.0609 13.3286 20.0783 12.5784 20.8284C11.8283 21.5786 10.8109 22 9.75 22C8.68913 22 7.67172 21.5786 6.92157 20.8284C6.17143 20.0783 5.75 19.0609 5.75 18"
+                stroke="#1C1C1C"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {cartItemCount > 0 && (
+              <div className="absolute right-0 top-0 flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[#1C1C1C] ring-2 ring-white">
+                <span className="text-[10px] font-medium text-white">{cartItemCount}</span>
+              </div>
+            )}
+          </button>
         </div>
       </div>
     </header>

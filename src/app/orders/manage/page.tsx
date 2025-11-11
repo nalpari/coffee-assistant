@@ -11,8 +11,6 @@ export default function OrdersManagePage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-background">
         <Header
-          searchQuery=""
-          onSearchChange={() => {}}
           cartItemCount={0}
           onCartClick={() => {}}
         />

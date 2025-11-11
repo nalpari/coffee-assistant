@@ -21,30 +21,40 @@ export function FooterNavButton({
   onClick,
   disabled = false,
 }: FooterNavButtonProps) {
+  const content = (
+    <>
+      <Icon
+        className={cn(
+          'w-5 h-5 transition-colors duration-200'
+        )}
+        strokeWidth={1.5}
+        style={{ 
+          color: isActive ? '#1C1C1C' : '#C4C7CC',
+          stroke: isActive ? '#1C1C1C' : '#C4C7CC'
+        }}
+      />
+      <span
+        className="text-[10px] font-medium leading-[150%] tracking-[-0.25px] transition-colors duration-200"
+        style={{ color: isActive ? '#1C1C1C' : '#C4C7CC' }}
+      >
+        {label}
+      </span>
+    </>
+  );
+
+  const className = "flex flex-col items-center justify-center gap-1.5 h-full px-2 transition-colors duration-200";
+
   // 준비중인 기능인 경우 버튼으로 렌더링
   if (disabled || onClick) {
     return (
       <button
         onClick={onClick}
         disabled={disabled}
-        className="flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[56px] transition-colors duration-200"
+        className={className}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
       >
-        <Icon
-          className={cn(
-            'w-6 h-6 transition-colors duration-200',
-            isActive ? 'text-black' : 'text-gray-400'
-          )}
-        />
-        <span
-          className={cn(
-            'text-xs font-medium transition-colors duration-200',
-            isActive ? 'text-black' : 'text-gray-400'
-          )}
-        >
-          {label}
-        </span>
+        {content}
       </button>
     );
   }
@@ -53,24 +63,11 @@ export function FooterNavButton({
   return (
     <Link
       href={href}
-      className="flex flex-col items-center justify-center gap-1 py-2 px-3 min-w-[56px] transition-colors duration-200"
+      className={className}
       aria-label={label}
       aria-current={isActive ? 'page' : undefined}
     >
-      <Icon
-        className={cn(
-          'w-6 h-6 transition-colors duration-200',
-          isActive ? 'text-black' : 'text-gray-400'
-        )}
-      />
-      <span
-        className={cn(
-          'text-xs font-medium transition-colors duration-200',
-          isActive ? 'text-black' : 'text-gray-400'
-        )}
-      >
-        {label}
-      </span>
+      {content}
     </Link>
   );
 }

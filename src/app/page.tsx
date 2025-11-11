@@ -15,16 +15,13 @@ import type { MenuItemDisplay } from '@/types/menu';
 
 export default function HomePage() {
   const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const { items, addItem } = useCartStore();
 
-  // 장바구니 총 아이템 개수 계산
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  // API에서 메뉴 데이터 조회 (무한 스크롤)
   const {
     data,
     fetchNextPage,
@@ -35,23 +32,20 @@ export default function HomePage() {
     error,
   } = useMenuInfiniteQuery({
     categoryId: selectedCategory,
-    searchQuery,
+    searchQuery: '',
     pageSize: 8,
   });
 
-  // 모든 페이지의 데이터를 하나의 배열로 합치기
   const displayedItems = useMemo(() => {
     return data?.pages.flatMap((page) => page.data) ?? [];
   }, [data]);
 
-  // 다음 페이지 로드 함수
   const loadMore = () => {
     if (!isFetchingNextPage && hasNextPage) {
       fetchNextPage();
     }
   };
 
-  // 무한 스크롤 훅 사용
   const { observerRef } = useInfiniteScroll({
     onLoadMore: loadMore,
     hasMore: hasNextPage ?? false,
@@ -59,23 +53,15 @@ export default function HomePage() {
   });
 
   const handleItemClick = (item: MenuItemDisplay) => {
-    // 상품 카드 클릭 시 상세 페이지로 이동
     router.push(`/products/${item.id}`);
   };
 
   const handleAddToCart = (item: MenuItemDisplay) => {
-    // 담기 버튼 클릭 시 장바구니에 추가
     addItem(item);
   };
 
   const handleCartClick = () => {
-    // 헤더의 장바구니 아이콘 클릭 시 모달 열기
     setIsCartOpen(true);
-  };
-
-  // 검색어나 카테고리가 변경되면 React Query가 자동으로 refetch
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query);
   };
 
   const handleCategoryChange = (category: number | 'all') => {
@@ -86,8 +72,6 @@ export default function HomePage() {
     <ProtectedRoute>
       <div className="min-h-screen bg-background">
         <Header
-          searchQuery={searchQuery}
-          onSearchChange={handleSearchChange}
           cartItemCount={cartItemCount}
           onCartClick={handleCartClick}
         />
@@ -98,10 +82,8 @@ export default function HomePage() {
         />
 
         <main className="container mx-auto pb-24">
-          {/* 초기 로딩 */}
           {isLoading && <LoadingSpinner />}
 
-          {/* 에러 메시지 */}
           {isError && (
             <div className="flex items-center justify-center py-16">
               <p className="text-red-500">
@@ -110,7 +92,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* 메뉴 그리드 */}
           {!isLoading && !isError && (
             <>
               <MenuGrid
@@ -119,15 +100,12 @@ export default function HomePage() {
                 onAddToCart={handleAddToCart}
               />
 
-              {/* 다음 페이지 로딩 스피너 */}
               {isFetchingNextPage && <LoadingSpinner />}
 
-              {/* Intersection Observer 감지 요소 */}
               {hasNextPage && !isFetchingNextPage && (
                 <div ref={observerRef} className="h-10" aria-hidden="true" />
               )}
 
-              {/* 모든 데이터 로드 완료 메시지 */}
               {!hasNextPage && displayedItems.length > 0 && (
                 <div className="flex items-center justify-center py-8">
                   <p className="text-sm text-gray-500">
@@ -136,10 +114,9 @@ export default function HomePage() {
                 </div>
               )}
 
-              {/* 검색 결과 없음 */}
               {displayedItems.length === 0 && (
                 <div className="flex items-center justify-center py-16">
-                  <p className="text-gray-500">검색 결과가 없습니다.</p>
+                  <p className="text-gray-500">메뉴가 없습니다.</p>
                 </div>
               )}
             </>
