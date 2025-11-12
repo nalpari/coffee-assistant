@@ -178,7 +178,7 @@ export default function AIRecommendationsPage() {
 
       {/* 채팅 영역 */}
       <div className="flex-1 overflow-y-auto pb-28 bg-white">
-        <div className="container mx-auto px-4 py-6 w-full sm:max-w-3xl lg:max-w-5xl">
+        <div className="container mx-auto px-4 pt-6 sm:pt-8 pb-6 w-full sm:max-w-3xl lg:max-w-5xl">
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
