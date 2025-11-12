@@ -205,7 +205,7 @@ export default function AIRecommendationsPage() {
 
       {/* 입력 영역 */}
       <div className="fixed bottom-0 left-0 right-0">
-        <div className="container mx-auto w-full sm:max-w-3xl lg:max-w-5xl">
+        <div className="container mx-auto w-full sm:max-w-3xl lg:max-w-5xl px-4">
           <ChatInput onSendMessage={handleSendMessage} disabled={isLoading || isProcessingCheckout} />
         </div>
       </div>
