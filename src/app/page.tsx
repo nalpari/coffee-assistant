@@ -86,7 +86,7 @@ export default function HomePage() {
 
   return (
     <ProtectedRoute>
-      <GeolocationProvider>
+      <GeolocationProvider autoFetch={true}>
         <div className="min-h-screen bg-background">
           <Header
             cartItemCount={cartItemCount}

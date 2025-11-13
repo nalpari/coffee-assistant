@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/Header';
 import { StoreSearchHeader, type SortOption } from '@/components/store/StoreSearchHeader';
 import { StoreCard } from '@/components/store/StoreCard';
 import { FooterNavigation } from '@/components/layout/FooterNavigation';
+import { GeolocationProvider } from '@/contexts/GeolocationContext';
 import { useGeolocation } from '@/contexts/GeolocationContext';
 import { calculateDistance, formatDistance } from '@/lib/location-utils';
 import { useStoresQuery } from '@/hooks/use-stores-query';
@@ -87,7 +88,8 @@ export default function StoresPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F8F8]">
+    <GeolocationProvider autoFetch={false}>
+      <div className="min-h-screen bg-[#F8F8F8]">
       {/* Header */}
       <Header
         points={1200}
@@ -142,6 +144,7 @@ export default function StoresPage() {
 
       {/* Footer Navigation */}
       <FooterNavigation />
-    </div>
+      </div>
+    </GeolocationProvider>
   );
 }

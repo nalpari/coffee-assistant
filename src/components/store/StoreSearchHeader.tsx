@@ -91,20 +91,20 @@ export function StoreSearchHeader({
 
       {/* Filter Settings Section */}
       <div className="flex flex-col items-start gap-3.5 self-stretch">
-        <div className="flex h-11 items-center gap-2 self-stretch">
+        <div className="flex h-11 items-center justify-between gap-2 self-stretch">
           {/* 가까운 순 버튼 */}
           <button
             type="button"
             onClick={handleNearestClick}
             className={cn(
-              'flex h-11 items-center justify-center rounded-full px-3.5 text-[14px] font-normal leading-[150%] tracking-[-0.35px] transition-colors cursor-pointer',
+              'flex h-11 items-center justify-center rounded-full px-2 text-[14px] font-normal leading-[150%] tracking-[-0.35px] transition-colors cursor-pointer',
               selectedSort === 'nearest'
-                ? 'bg-[#444] text-white'
+                ? 'bg-[#444] text-white border border-[#444]'
                 : 'border border-[#EDEDED] bg-white text-[#444]'
             )}
             aria-pressed={selectedSort === 'nearest'}
           >
-            가까운 순
+            <span>가까운 순</span>
           </button>
 
           {/* 영업중 버튼 */}
@@ -112,38 +112,42 @@ export function StoreSearchHeader({
             type="button"
             onClick={onToggleOpen}
             className={cn(
-              'flex h-11 items-center justify-center rounded-full px-3.5 text-[14px] font-normal leading-[150%] tracking-[-0.35px] transition-colors cursor-pointer',
+              'flex h-11 items-center justify-center rounded-full px-2 text-[14px] font-normal leading-[150%] tracking-[-0.35px] transition-colors cursor-pointer',
               isOpenOnly
-                ? 'bg-[#444] text-white'
+                ? 'bg-[#444] text-white border border-[#444]'
                 : 'border border-[#EDEDED] bg-white text-[#444]'
             )}
             aria-pressed={isOpenOnly}
           >
-            영업중
+            <span>영업중</span>
           </button>
 
           {/* 정렬 버튼 */}
           <button
             type="button"
             onClick={onFilterClick}
-            className="flex h-11 flex-1 min-w-[88px] items-center justify-center gap-2 rounded-full border border-[#EDEDED] bg-white px-3.5 cursor-pointer"
+            className="flex h-11 items-center justify-center rounded-full border border-[#EDEDED] bg-white cursor-pointer"
           >
-            <SlidersHorizontal className="h-3.5 w-3.5 text-[#444]" strokeWidth={1.5} />
-            <span className="text-[14px] font-normal leading-[150%] tracking-[-0.35px] text-[#444] whitespace-nowrap">
-              정렬
-            </span>
+            <div className="flex items-center gap-2 px-2">
+              <SlidersHorizontal className="h-3.5 w-3.5 text-[#444]" strokeWidth={1.5} />
+              <span className="text-[14px] font-normal leading-[150%] tracking-[-0.35px] text-[#444] whitespace-nowrap">
+                정렬
+              </span>
+            </div>
           </button>
 
           {/* 초기화 버튼 */}
           <button
             type="button"
             onClick={onReset}
-            className="flex h-11 items-center justify-center gap-2 rounded-full border border-[#EDEDED] bg-white px-3.5 cursor-pointer"
+            className="flex h-11 items-center justify-center rounded-full border border-[#EDEDED] bg-white cursor-pointer"
           >
-            <RefreshCw className="h-3.5 w-3.5 text-[#444]" strokeWidth={1.5} />
-            <span className="text-[14px] font-normal leading-[150%] tracking-[-0.35px] text-[#444]">
-              초기화
-            </span>
+            <div className="flex items-center gap-2 px-2">
+              <RefreshCw className="h-3.5 w-3.5 text-[#444]" strokeWidth={1.5} />
+              <span className="text-[14px] font-normal leading-[150%] tracking-[-0.35px] text-[#444]">
+                초기화
+              </span>
+            </div>
           </button>
         </div>
       </div>

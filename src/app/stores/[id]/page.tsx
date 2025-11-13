@@ -7,6 +7,7 @@ import { StorePhotoSection, StoreInfo, StoreMenuList } from '@/components/store'
 import { LoadingSpinner } from '@/components/menu/LoadingSpinner';
 import { CartSheet } from '@/components/cart/CartSheet';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { GeolocationProvider } from '@/contexts/GeolocationContext';
 import { useCartStore } from '@/store/cart-store';
 import { useCart } from '@/hooks/useCart';
 import { useGeolocation } from '@/contexts/GeolocationContext';
@@ -50,7 +51,8 @@ export default function StoreDetailPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex min-h-screen flex-col bg-white">
+      <GeolocationProvider autoFetch={false}>
+        <div className="flex min-h-screen flex-col bg-white">
         <StoreInfoHeader
           onBackClick={() => router.back()}
           cartItemCount={cartItemCount}
@@ -128,7 +130,8 @@ export default function StoreDetailPage() {
           onOpenChange={setIsCartOpen}
           storeId={store?.id}
         />
-      </div>
+        </div>
+      </GeolocationProvider>
     </ProtectedRoute>
   );
 }

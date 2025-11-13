@@ -17,16 +17,22 @@ const GeolocationContext = createContext<GeolocationState | undefined>(undefined
 
 interface GeolocationProviderProps {
   children: ReactNode;
+  autoFetch?: boolean; // 위치를 자동으로 가져올지 여부 (기본값: false)
 }
 
-export function GeolocationProvider({ children }: GeolocationProviderProps) {
+export function GeolocationProvider({ children, autoFetch = false }: GeolocationProviderProps) {
   const [state, setState] = useState<GeolocationState>({
     position: null,
     error: null,
-    loading: true,
+    loading: autoFetch, // autoFetch가 true일 때만 loading 상태
   });
 
   useEffect(() => {
+    // autoFetch가 false이면 위치를 가져오지 않음
+    if (!autoFetch) {
+      return;
+    }
+
     // Geolocation API 지원 확인
     if (!navigator.geolocation) {
       setState({
@@ -37,8 +43,8 @@ export function GeolocationProvider({ children }: GeolocationProviderProps) {
       return;
     }
 
-    // watchPosition으로 사용자 위치 지속 추적
-    const watchId = navigator.geolocation.watchPosition(
+    // 한 번만 현재 위치 가져오기 (추적하지 않음)
+    navigator.geolocation.getCurrentPosition(
       (position) => {
         setState({
           position: {
@@ -71,17 +77,12 @@ export function GeolocationProvider({ children }: GeolocationProviderProps) {
         });
       },
       {
-        enableHighAccuracy: true, // 높은 정확도 요청
-        maximumAge: 0, // 캐시된 위치 사용 안 함
+        enableHighAccuracy: false, // 배터리 절약
+        maximumAge: 300000, // 5분간 캐시된 위치 사용
         timeout: 10000, // 10초 타임아웃
       }
     );
-
-    // 컴포넌트 언마운트 시 watchPosition 정리
-    return () => {
-      navigator.geolocation.clearWatch(watchId);
-    };
-  }, []);
+  }, [autoFetch]);
 
   return (
     <GeolocationContext.Provider value={state}>
