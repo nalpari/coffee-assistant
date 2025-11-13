@@ -8,6 +8,9 @@ import { getUserOrders } from '@/app/actions/order';
 import { getOrderStatusLabel } from '@/lib/order-utils';
 import { getPaymentMethodLabel } from '@/lib/payment-utils';
 
+// 동적 라우트로 설정 (cookies 사용)
+export const dynamic = 'force-dynamic';
+
 export default async function OrdersPage() {
   // 현재 사용자의 주문만 조회
   const orders = await getUserOrders(50);

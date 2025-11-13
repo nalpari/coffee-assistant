@@ -9,8 +9,6 @@ import { useMemo } from 'react';
 
 type SortOption = 'nearest' | 'popular' | 'recent';
 
-const DEFAULT_POSITION = { lat: 37.556960, lon: 126.934305 };
-
 interface StoreListProps {
   sortBy?: SortOption;
   searchQuery?: string;

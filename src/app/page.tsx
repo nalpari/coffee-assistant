@@ -19,7 +19,7 @@ import type { MenuItemDisplay } from '@/types/menu';
 type ViewMode = 'stores' | 'menu';
 export default function HomePage() {
   const router = useRouter();
-  const [viewMode, setViewMode] = useState<ViewMode>('stores');
+  const [viewMode] = useState<ViewMode>('stores');
   const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -116,7 +116,8 @@ export default function HomePage() {
               onToggleOpen={() =>
                 setFilters((previous) => {
                   if (previous.isOpen) {
-                    const { isOpen: _removed, ...rest } = previous;
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const { isOpen, ...rest } = previous;
                     return rest;
                   }
                   return { ...previous, isOpen: true };

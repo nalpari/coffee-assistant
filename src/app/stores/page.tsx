@@ -14,7 +14,7 @@ import { useStoresQuery } from '@/hooks/use-stores-query';
 const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_POSITION = { lat: 37.556960, lon: 126.934305 };
 
-export default function StoresPage() {
+function StoresPageContent() {
   const router = useRouter();
   const { position: userPosition } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,9 +38,8 @@ export default function StoresPage() {
     userLon: effectivePosition.lon,
   });
 
-  const stores = data?.data ?? [];
-
   const storesWithDistance = useMemo(() => {
+    const stores = data?.data ?? [];
     if (!stores.length) {
       return [];
     }
@@ -66,7 +65,7 @@ export default function StoresPage() {
         distance: formatDistance(distanceKm),
       };
     });
-  }, [stores, effectivePosition.lat, effectivePosition.lon]);
+  }, [data?.data, effectivePosition.lat, effectivePosition.lon]);
 
   const handleSearchSubmit = () => {
     refetch();
@@ -88,8 +87,7 @@ export default function StoresPage() {
   };
 
   return (
-    <GeolocationProvider autoFetch={false}>
-      <div className="min-h-screen bg-[#F8F8F8]">
+    <div className="min-h-screen bg-[#F8F8F8]">
       {/* Header */}
       <Header
         points={1200}
@@ -144,7 +142,14 @@ export default function StoresPage() {
 
       {/* Footer Navigation */}
       <FooterNavigation />
-      </div>
+    </div>
+  );
+}
+
+export default function StoresPage() {
+  return (
+    <GeolocationProvider autoFetch={false}>
+      <StoresPageContent />
     </GeolocationProvider>
   );
 }
