@@ -144,7 +144,37 @@ export async function createOrder(
       return { success: false, error: '주문 생성에 실패했습니다.' }
     }
 
-    // 7. order_items 테이블에 주문 항목 생성
+    // 7. store_menu 검증 (매장 ID가 있는 경우)
+    if (request.storeId) {
+      for (const item of request.items) {
+        const { data: storeMenu, error: storeMenuError } = await supabase
+          .from('store_menu')
+          .select('id, is_available')
+          .eq('store_id', request.storeId)
+          .eq('menu_id', item.menuId)
+          .single();
+
+        if (storeMenuError || !storeMenu) {
+          // 롤백: 주문 삭제
+          await supabase.from('orders').delete().eq('id', order.id);
+          return {
+            success: false,
+            error: `해당 매장에서 ${item.menuName}을(를) 판매하지 않습니다.`,
+          };
+        }
+
+        if (!storeMenu.is_available) {
+          // 롤백: 주문 삭제
+          await supabase.from('orders').delete().eq('id', order.id);
+          return {
+            success: false,
+            error: `해당 매장에서 ${item.menuName}은(는) 현재 판매 중지된 메뉴입니다.`,
+          };
+        }
+      }
+    }
+
+    // 8. order_items 테이블에 주문 항목 생성
     const orderItems = request.items.map(item => ({
       order_id: order.id,
       menu_id: item.menuId,
@@ -167,7 +197,7 @@ export async function createOrder(
       return { success: false, error: '주문 항목 생성에 실패했습니다.' }
     }
 
-    // 8. 캐시 무효화
+    // 9. 캐시 무효화
     revalidatePath('/orders')
 
     return {

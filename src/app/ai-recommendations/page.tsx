@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
 import { AiRecommendationHeader } from '@/components/layout/AiRecommendationHeader';
+import { StoreSelectionCard } from '@/components/ai/StoreSelectionCard';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
 import { useAuth } from '@/contexts/AuthContext';
+import { getMenuItemById } from '@/lib/api/menu';
 import type { ChatResponse } from '@/types/shopping-agent';
 
 function formatTimestamp(date: Date): string {
@@ -33,6 +35,10 @@ export default function AIRecommendationsPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+  const [pendingStoreSelection, setPendingStoreSelection] = useState<{
+    menuName: string;
+    storeSelection: ChatResponse['storeSelection'];
+  } | null>(null);
 
   // 메시지 자동 스크롤
   useEffect(() => {
@@ -90,6 +96,21 @@ export default function AIRecommendationsPage() {
 
       const data: ChatResponse = await response.json();
 
+      // select_store 액션 처리
+      if (data.action === 'select_store' && data.storeSelection && data.menuName) {
+        setPendingStoreSelection({
+          menuName: data.menuName,
+          storeSelection: data.storeSelection,
+        });
+        // AI 응답 추가
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        setLoading(false);
+        return;
+      }
+
       // AI 응답 추가
       addMessage({
         role: 'assistant',
@@ -124,10 +145,62 @@ export default function AIRecommendationsPage() {
     }
   };
 
+  // 매장 선택 핸들러
+  const handleStoreSelect = async (storeId: number, menuId: number) => {
+    if (!pendingStoreSelection) return;
+
+    setLoading(true);
+    setPendingStoreSelection(null);
+
+    try {
+      // 메뉴 정보 조회
+      const menuData = await getMenuItemById(menuId);
+      if (!menuData) {
+        throw new Error('메뉴 정보를 불러올 수 없습니다.');
+      }
+
+      // 장바구니에 추가
+      const { setItems, items } = useCartStore.getState();
+      const existingItem = items.find(item => item.id === menuId && item.storeId === storeId);
+      
+      if (existingItem) {
+        // 이미 장바구니에 있으면 수량 증가
+        setItems(
+          items.map(item =>
+            item.id === menuId && item.storeId === storeId
+              ? { ...item, quantity: item.quantity + 1 }
+              : item
+          )
+        );
+      } else {
+        // 새로 추가
+        setItems([
+          ...items,
+          {
+            ...menuData,
+            quantity: 1,
+            storeId: storeId,
+          },
+        ]);
+      }
+
+      // AI에게 매장 선택 완료 메시지 전송
+      await handleSendMessage(`${pendingStoreSelection.menuName}을(를) 선택한 매장에서 주문하겠습니다.`);
+    } catch (error) {
+      console.error('매장 선택 오류:', error);
+      addMessage({
+        role: 'assistant',
+        content: '매장 선택 중 오류가 발생했습니다. 다시 시도해주세요.',
+      });
+      setLoading(false);
+    }
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleReset = () => {
     clearMessages();
     hasInitializedRef.current = false;
+    setPendingStoreSelection(null);
     // 환영 메시지 다시 추가
     setTimeout(() => {
       addMessage({
@@ -199,6 +272,17 @@ export default function AIRecommendationsPage() {
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
+
+          {/* 매장 선택 카드 */}
+          {pendingStoreSelection && pendingStoreSelection.storeSelection && (
+            <div className="mb-8">
+              <StoreSelectionCard
+                menuName={pendingStoreSelection.menuName}
+                storeSelection={pendingStoreSelection.storeSelection}
+                onSelect={handleStoreSelect}
+              />
+            </div>
+          )}
 
           {/* 로딩 인디케이터 */}
           {isLoading && (

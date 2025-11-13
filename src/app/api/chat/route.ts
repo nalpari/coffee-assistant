@@ -9,7 +9,9 @@ import { conversationManager } from '@/lib/conversation-manager';
 import { getServerSession, createSupabaseServerClient } from '@/lib/supabase-server';
 import { createOrder } from '@/app/actions/order';
 import { processPayment } from '@/app/actions/payment';
-import type { ChatRequest, ChatResponse, ChatMessage, Order } from '@/types/shopping-agent';
+import { findRecentOrderByMenuName } from '@/lib/order-utils';
+import { findStoresByMenuName } from '@/lib/store-menu-utils';
+import type { ChatRequest, ChatResponse, ChatMessage, Order, StoreSelectionOption } from '@/types/shopping-agent';
 
 const shoppingAgent = new ShoppingAgent();
 
@@ -149,11 +151,21 @@ export async function POST(req: NextRequest) {
           return sum + price * item.quantity;
         }, 0);
 
+        // 매장 ID 추출 (모든 아이템이 같은 매장인지 확인)
+        const storeIds = updatedCart
+          .map(item => item.storeId)
+          .filter((id): id is number => id !== undefined);
+        
+        // 모든 아이템이 같은 매장인지 확인
+        const uniqueStoreIds = [...new Set(storeIds)];
+        const storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+
         // 주문 생성
         const orderResult = await createOrder({
           customerName: userName,
           customerPhone: userPhone,
           customerEmail: userEmail || undefined,
+          storeId: storeId,
           items: orderItems,
           totalAmount,
           discountAmount: 0,
@@ -251,11 +263,21 @@ export async function POST(req: NextRequest) {
         return sum + price * item.quantity;
       }, 0);
 
+      // 매장 ID 추출 (모든 아이템이 같은 매장인지 확인)
+      const storeIds = updatedCart
+        .map(item => item.storeId)
+        .filter((id): id is number => id !== undefined);
+      
+      // 모든 아이템이 같은 매장인지 확인
+      const uniqueStoreIds = [...new Set(storeIds)];
+      const storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+
       // 주문 생성
       const orderResult = await createOrder({
         customerName: userName,
         customerPhone: userPhone,
         customerEmail: userEmail || undefined,
+        storeId: storeId,
         items: orderItems,
         totalAmount,
         discountAmount: 0,
@@ -340,6 +362,66 @@ export async function POST(req: NextRequest) {
           updated_at: foundOrder.created_at,
         };
       }
+    } else if (aiResponse.action === 'select_store' && aiResponse.menuName) {
+      // 매장 선택 필요: 옵션 1과 옵션 2 준비
+      const menuName = aiResponse.menuName;
+
+      // 옵션 1: 최근 주문 찾기
+      const recentOrder = await findRecentOrderByMenuName(userId, menuName);
+
+      // 옵션 2: 해당 메뉴를 판매하는 매장 찾기 (위치 정보 없이)
+      const stores = await findStoresByMenuName(menuName);
+
+      const storeSelection: StoreSelectionOption = {
+        option1: recentOrder
+          ? {
+              type: 'recent_order',
+              storeId: recentOrder.storeId,
+              storeName: '', // 나중에 매장 정보 조회 필요
+              menuId: recentOrder.menuId,
+              menuName: recentOrder.menuName,
+              orderNumber: recentOrder.orderNumber,
+              orderDate: recentOrder.orderDate,
+            }
+          : null,
+        option2: {
+          type: 'nearest_store',
+          stores: stores.slice(0, 5).map((store) => ({
+            storeId: store.storeId,
+            storeName: store.storeName,
+            menuId: store.menuId,
+            menuName: store.menuName,
+            distance: store.distance,
+            distanceFormatted: store.distanceFormatted,
+            address: store.address,
+          })),
+        },
+      };
+
+      // 옵션 1의 매장명 조회
+      if (storeSelection.option1) {
+        const supabaseClient = await createSupabaseServerClient();
+        const { data: storeData } = await supabaseClient
+          .from('stores')
+          .select('name')
+          .eq('id', storeSelection.option1.storeId)
+          .single();
+
+        if (storeData) {
+          storeSelection.option1.storeName = storeData.name;
+        }
+      }
+
+      // 응답에 storeSelection 추가
+      const response: ChatResponse = {
+        message: aiResponse.message,
+        action: aiResponse.action,
+        cart: updatedCart,
+        storeSelection,
+        menuName,
+      };
+
+      return NextResponse.json(response);
     }
 
     // 장바구니 유효성 검증

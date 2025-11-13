@@ -189,6 +189,7 @@ export class ShoppingAgent {
         'checkout',
         'get_orders',
         'get_order_status',
+        'select_store',
         'chat',
       ];
 
@@ -201,6 +202,7 @@ export class ShoppingAgent {
         message: parsedResponse.message || '응답을 처리할 수 없습니다.',
         products: parsedResponse.products,
         orderNumber: parsedResponse.orderNumber,
+        menuName: parsedResponse.menuName,
       };
     } catch (error) {
       console.error('Error parsing Claude response:', error);

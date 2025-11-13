@@ -15,6 +15,7 @@ export type AIAction =
   | 'checkout' // 결제 진행
   | 'get_orders' // 주문 내역 조회 (NEW)
   | 'get_order_status' // 특정 주문 상태 조회 (NEW)
+  | 'select_store' // 매장 선택 필요 (NEW)
   | 'chat'; // 일반 대화
 
 /**
@@ -28,6 +29,7 @@ export interface AIResponse {
     quantity: number;
   }>;
   orderNumber?: string; // 주문번호 (get_order_status 액션 시) (NEW)
+  menuName?: string; // 메뉴명 (select_store 액션 시) (NEW)
 }
 
 /**
@@ -100,6 +102,33 @@ export interface Order {
 }
 
 /**
+ * 매장 선택 옵션 (select_store 액션 시)
+ */
+export interface StoreSelectionOption {
+  option1: {
+    type: 'recent_order';
+    storeId: number;
+    storeName: string;
+    menuId: number;
+    menuName: string;
+    orderNumber: string;
+    orderDate: Date;
+  } | null;
+  option2: {
+    type: 'nearest_store';
+    stores: Array<{
+      storeId: number;
+      storeName: string;
+      menuId: number;
+      menuName: string;
+      distance?: number;
+      distanceFormatted?: string;
+      address: string | null;
+    }>;
+  };
+}
+
+/**
  * 채팅 API 응답
  */
 export interface ChatResponse {
@@ -112,4 +141,6 @@ export interface ChatResponse {
   }>;
   orders?: Order[]; // 주문 목록 (get_orders 액션 시) (NEW)
   order?: Order; // 특정 주문 (get_order_status 액션 시) (NEW)
+  storeSelection?: StoreSelectionOption; // 매장 선택 옵션 (select_store 액션 시) (NEW)
+  menuName?: string; // 메뉴명 (select_store 액션 시) (NEW)
 }
