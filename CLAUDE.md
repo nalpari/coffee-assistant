@@ -105,8 +105,12 @@ src/
 │   ├── page.tsx              # Home page
 │   ├── ai-recommendations/   # AI recommendation page
 │   ├── products/[id]/        # Product detail pages
+│   ├── stores/               # Store listing and details
+│   │   ├── page.tsx          # Store list page
+│   │   └── [id]/             # Store detail page with menu
 │   ├── orders/               # Order listing and management
 │   │   ├── [id]/             # Individual order detail
+│   │   │   └── complete/     # Order completion page
 │   │   └── manage/           # Order management dashboard
 │   ├── checkout/             # Checkout flow
 │   ├── dashboard/            # User dashboard
@@ -148,16 +152,32 @@ src/
 │   │   └── LoadingSpinner.tsx
 │   ├── product/              # Product components
 │   │   └── QuantityControl.tsx
+│   ├── store/                # Store components
+│   │   ├── StoreList.tsx     # Store list
+│   │   ├── StoreCard.tsx     # Store card
+│   │   ├── StoreInfo.tsx     # Store info section
+│   │   ├── StoreMenuList.tsx # Store-specific menu
+│   │   ├── StoreMenuSection.tsx # Menu section by category
+│   │   ├── StoreMenuCategoryTabs.tsx # Category tabs for store menu
+│   │   ├── StoreMenuProductCard.tsx # Product card in store menu
+│   │   ├── StorePhotoSection.tsx # Store photo gallery
+│   │   └── StoreSearchHeader.tsx # Search and filter header
 │   ├── orders/               # Order components
 │   │   ├── OrderList.tsx
 │   │   └── OrderCard.tsx
 │   ├── chat/                 # AI chat components
 │   │   ├── ChatInput.tsx
-│   │   └── ChatMessage.tsx
+│   │   ├── ChatMessage.tsx
+│   │   └── DuplicateOrderDialog.tsx # Duplicate order confirmation
+│   ├── ai/                   # AI-specific components
+│   │   └── StoreSelectionCard.tsx # Store selection in AI chat
 │   ├── layout/               # Layout components
 │   │   ├── Header.tsx
 │   │   ├── FooterNavigation.tsx
-│   │   └── FooterNavButton.tsx
+│   │   ├── FooterNavButton.tsx
+│   │   ├── AiRecommendationHeader.tsx
+│   │   ├── StoreInfoHeader.tsx
+│   │   └── OrderHeader.tsx
 │   └── providers/            # Context providers
 │       └── QueryProvider.tsx # TanStack Query provider
 │
@@ -169,17 +189,24 @@ src/
 │   ├── claude-client.ts      # Anthropic Claude API client
 │   ├── shopping-agent.ts     # AI shopping agent logic
 │   ├── conversation-manager.ts # Conversation state management
+│   ├── duplicate-order-detector.ts # Duplicate order detection
 │   ├── order-utils.ts        # Order processing utilities
 │   ├── payment-utils.ts      # Payment utilities
 │   ├── price-utils.ts        # Price calculation utilities
+│   ├── location-utils.ts     # Geolocation and distance calculation
+│   ├── menu-search-utils.ts  # Menu search utilities
+│   ├── store-menu-utils.ts   # Store menu utilities
 │   └── api/
-│       └── menu.ts           # Menu API functions
+│       ├── menu.ts           # Menu API functions
+│       └── stores.ts         # Store API functions
 │
 ├── hooks/                    # Custom React hooks
 │   ├── useCart.ts            # Cart state management hook
 │   ├── use-menu-query.ts     # Menu data fetching
 │   ├── use-product-query.ts  # Product detail fetching
 │   ├── use-orders-query.ts   # Orders data fetching
+│   ├── use-stores-query.ts   # Stores data fetching
+│   ├── use-store-menu-query.ts # Store menu data fetching
 │   └── use-infinite-scroll.ts # Infinite scroll implementation
 │
 ├── store/                    # Zustand state stores
@@ -187,7 +214,8 @@ src/
 │   └── chat-store.ts         # Chat conversation state
 │
 ├── contexts/                 # React contexts
-│   └── AuthContext.tsx       # Authentication context
+│   ├── AuthContext.tsx       # Authentication context
+│   └── GeolocationContext.tsx # Geolocation context
 │
 ├── types/                    # TypeScript type definitions
 │   ├── menu.ts               # Menu and product types
@@ -195,6 +223,7 @@ src/
 │   ├── chat.ts               # Chat message types
 │   ├── order.ts              # Order types
 │   ├── auth.ts               # Auth types
+│   ├── store.ts              # Store types
 │   └── shopping-agent.ts     # AI agent types
 │
 └── data/                     # Mock data and constants
@@ -300,7 +329,13 @@ The AI shopping assistant uses Anthropic's Claude API to provide personalized co
 - `checkout`: Initiate checkout process
 - `get_orders`: Fetch user order history
 - `get_order_status`: Check specific order status
+- `select_store`: Select a store for ordering
 - `chat`: General conversation
+
+**Key Features**:
+- **Duplicate Order Detection**: Automatically detects duplicate orders to prevent accidental re-ordering
+- **Store-Aware Recommendations**: Recommendations consider selected store and available menu items
+- **Conversation Context**: Maintains conversation history for natural, contextual interactions
 
 ### State Management Architecture
 
@@ -318,7 +353,13 @@ The AI shopping assistant uses Anthropic's Claude API to provide personalized co
 - `use-menu-query.ts`: Menu and product data
 - `use-product-query.ts`: Individual product details
 - `use-orders-query.ts`: Order history and status
+- `use-stores-query.ts`: Store listings with location-based sorting
+- `use-store-menu-query.ts`: Store-specific menu items
 - Automatic caching, background refetching, and optimistic updates
+
+**Context Providers**:
+- `AuthContext`: Authentication state and user management
+- `GeolocationContext`: User location and geolocation services for store distance calculation
 
 ### Authentication System
 **Location**: `src/lib/supabase-auth.ts`, `src/contexts/AuthContext.tsx`, `middleware.ts`
@@ -367,6 +408,30 @@ Zustand-based cart with optimistic updates and persistence.
 - Side sheet UI with instant updates
 - Cart button with item count badge
 
+### Store Management & Location Services
+**Location**: `src/lib/location-utils.ts`, `src/lib/api/stores.ts`, `src/contexts/GeolocationContext.tsx`
+
+Location-based store discovery and management system.
+
+**Key Components**:
+- **GeolocationContext**: Browser Geolocation API integration for user location tracking
+- **Location Utils**: Haversine formula for accurate distance calculation between coordinates
+- **Store API**: Fetch stores with location-based sorting and filtering
+
+**Features**:
+- User location permission handling
+- Real-time distance calculation (km/m formatting)
+- Sort by: distance, popularity, newest
+- Filter by: operating status, search query
+- Store detail pages with menu, photos, reviews, and announcements
+
+**Distance Calculation**:
+```typescript
+// Uses Haversine formula for accurate distance
+calculateDistance(lat1, lon1, lat2, lon2) // Returns distance in km
+formatDistance(distanceInKm) // Returns "1.2 km" or "450 m"
+```
+
 ## Configuration Details
 
 ### TypeScript Configuration
@@ -377,9 +442,13 @@ Zustand-based cart with optimistic updates and persistence.
 - **Path Aliases**: Configured for `@/*` imports
 
 ### Next.js Configuration
-- **React Compiler**: Enabled for automatic React optimizations
-- **Image Optimization**: Available via `next/image` component
-- **Middleware**: Session management for all dynamic routes
+- **React Compiler**: Enabled for automatic React optimizations (`reactCompiler: true`)
+- **Image Optimization**: Configured for remote patterns from Supabase, Google OAuth, and Builder.io
+- **Remote Image Patterns**:
+  - `bo.heemina.co.kr/minio/images/**` - Product and store images
+  - `lh3.googleusercontent.com/**` - Google OAuth profile pictures
+  - `api.builder.io/**` - Builder.io assets
+- **Middleware**: Session management for all dynamic routes (excluding static assets)
 
 ### Vitest Configuration
 - **Environment**: jsdom (browser-like environment)
@@ -423,10 +492,21 @@ Zustand-based cart with optimistic updates and persistence.
 - **className Utilities**: Use `cn()` from `@/lib/utils` for conditional classes
 
 ### Data Fetching Patterns
-- **Server Components**: Fetch data directly in async server components
-- **Client Components**: Use TanStack Query hooks for client-side fetching
-- **API Routes**: Use for operations requiring server-side processing or secrets
-- **Server Actions**: Use for mutations (form submissions, data updates)
+- **Server Components**: Fetch data directly in async server components using Supabase server client
+- **Client Components**: Use TanStack Query hooks for client-side fetching with automatic caching
+- **API Routes**: Use for operations requiring server-side processing, secrets, or AI integration
+- **Server Actions**: Use for mutations (form submissions, data updates, order processing)
+
+### Database & Supabase Patterns
+- **Table Naming**: Use snake_case for tables (`menu_items`, `store_menus`, `order_items`)
+- **Status Codes**: Enum-based status codes (e.g., `E0101` for active menu items, `E0201` for available stores)
+- **Relationships**: Foreign keys with `_id` suffix (`store_id`, `menu_item_id`)
+- **Key Tables**:
+  - `menu`: Product catalog with categories, prices, and status
+  - `stores`: Store locations with lat/lon coordinates, address, status
+  - `store_menus`: Junction table mapping stores to menu items with availability
+  - `orders`: Order records with user, store, and status tracking
+  - `order_items`: Line items for each order with product details and quantities
 
 ### State Management Patterns
 - **UI State**: React useState, useReducer
