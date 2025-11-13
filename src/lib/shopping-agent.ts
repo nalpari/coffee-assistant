@@ -5,6 +5,7 @@
 
 import { claude, CLAUDE_CONFIG, SHOPPING_ASSISTANT_PROMPT, formatConversationHistory } from './claude-client';
 import { supabase } from './supabase';
+import { detectDuplicateOrder, type DuplicateDetectionResult } from './duplicate-order-detector';
 import type {
   ConversationContext,
   AIResponse,
@@ -65,7 +66,7 @@ export class ShoppingAgent {
    * 컨텍스트 정보 준비
    */
   private async prepareContextInfo(context: ConversationContext): Promise<string> {
-    const { userId, cart, frequentProducts } = context;
+    const { userId, cart, frequentProducts, selectedStore } = context;
 
     // 제품 목록 조회 (menu 테이블 사용, status로 판매 가능 여부 판단)
     const { data: products } = await supabase
@@ -87,6 +88,21 @@ export class ShoppingAgent {
       .limit(20);
 
     let contextInfo = `사용자 ID: ${userId}\n\n`;
+
+    // 선택된 매장 정보 (NEW)
+    if (selectedStore) {
+      contextInfo += `선택된 매장:\n`;
+      contextInfo += `- 매장명: ${selectedStore.name}\n`;
+      if (selectedStore.address) {
+        contextInfo += `- 주소: ${selectedStore.address}\n`;
+      }
+      if (selectedStore.phone) {
+        contextInfo += `- 전화번호: ${selectedStore.phone}\n`;
+      }
+      contextInfo += `\n`;
+    } else {
+      contextInfo += `선택된 매장: 없음\n\n`;
+    }
 
     // 현재 장바구니 정보
     if (cart.length > 0) {
@@ -478,5 +494,60 @@ export class ShoppingAgent {
       cancelled: '취소됨',
     };
     return statusLabels[status] || status;
+  }
+
+  /**
+   * 중복 주문 감지 및 옵션 준비 (NEW)
+   */
+  async checkDuplicateAndPrepareOptions(
+    userId: string,
+    cartItems: CartItem[]
+  ): Promise<DuplicateDetectionResult> {
+    try {
+      return await detectDuplicateOrder(userId, cartItems);
+    } catch (error) {
+      console.error('[ShoppingAgent] Error checking duplicate order:', error);
+      return { isDuplicate: false };
+    }
+  }
+
+  /**
+   * 재주문 처리 (NEW)
+   */
+  async processReorder(userId: string, orderId: number): Promise<AIResponse> {
+    try {
+      // 주문 정보 조회
+      const { data: order, error } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .eq('user_id', userId)
+        .single();
+
+      if (error || !order) {
+        return {
+          action: 'chat',
+          message: '주문을 찾을 수 없습니다.',
+        };
+      }
+
+      // 주문 아이템 추출
+      const orderItems = Array.isArray(order.items) ? order.items : [];
+
+      return {
+        action: 'add_to_cart',
+        message: `이전 주문을 장바구니에 담았습니다. (주문번호: ${order.order_number})`,
+        products: orderItems.map((item: { menuId: number; quantity: number }) => ({
+          id: item.menuId.toString(),
+          quantity: item.quantity,
+        })),
+      };
+    } catch (error) {
+      console.error('[ShoppingAgent] Error processing reorder:', error);
+      return {
+        action: 'chat',
+        message: '재주문 처리 중 오류가 발생했습니다.',
+      };
+    }
   }
 }

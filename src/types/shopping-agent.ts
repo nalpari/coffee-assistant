@@ -4,6 +4,7 @@
  */
 
 import type { CartItem } from './cart';
+import type { SelectedStore } from './store';
 
 /**
  * AI 액션 타입 (주문 관리 기능 추가)
@@ -16,6 +17,7 @@ export type AIAction =
   | 'get_orders' // 주문 내역 조회 (NEW)
   | 'get_order_status' // 특정 주문 상태 조회 (NEW)
   | 'select_store' // 매장 선택 필요 (NEW)
+  | 'check_duplicate' // 중복 주문 확인 (NEW)
   | 'chat'; // 일반 대화
 
 /**
@@ -62,6 +64,7 @@ export interface ConversationContext {
   conversationHistory: ChatMessage[];
   cart: CartItem[];
   frequentProducts: UserPurchaseFrequency[];
+  selectedStore: SelectedStore | null;  // 현재 선택된 매장 정보 (NEW)
   lastActivity: Date;
 }
 
@@ -85,6 +88,12 @@ export interface Product {
 export interface ChatRequest {
   message: string;
   cart?: CartItem[];
+  selectedStore?: SelectedStore | null;  // 선택된 매장 정보 (NEW)
+  userChoice?: {
+    type: 'reorder' | 'new_store';
+    orderId?: number;
+    storeId?: number;
+  }; // 사용자 선택 (중복 주문 확인 시) (NEW)
 }
 
 /**
@@ -129,6 +138,30 @@ export interface StoreSelectionOption {
 }
 
 /**
+ * 중복 주문 정보 (check_duplicate 액션 시)
+ */
+export interface DuplicateOrderInfo {
+  isDuplicate: boolean;
+  menuName?: string;
+  recentOrder?: {
+    orderId: number;
+    orderNumber: string;
+    menuItems: CartItem[];
+    orderDate: string;
+    storeId: number;
+    storeName: string;
+    totalAmount: number;
+  };
+  nearbyStores?: Array<{
+    storeId: number;
+    storeName: string;
+    address: string | null;
+    distance?: string;
+    estimatedTime?: string;
+  }>;
+}
+
+/**
  * 채팅 API 응답
  */
 export interface ChatResponse {
@@ -143,4 +176,5 @@ export interface ChatResponse {
   order?: Order; // 특정 주문 (get_order_status 액션 시) (NEW)
   storeSelection?: StoreSelectionOption; // 매장 선택 옵션 (select_store 액션 시) (NEW)
   menuName?: string; // 메뉴명 (select_store 액션 시) (NEW)
+  duplicateInfo?: DuplicateOrderInfo; // 중복 주문 정보 (check_duplicate 액션 시) (NEW)
 }

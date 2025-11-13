@@ -81,3 +81,15 @@ export interface GetStoresOptions {
     isOpen?: boolean;
   };
 }
+
+/**
+ * 매장 선택 정보 (전역 상태 관리용)
+ *
+ * 장바구니 및 주문에 연결된 매장의 핵심 정보만 포함
+ */
+export interface SelectedStore {
+  id: number;
+  name: string;
+  address: string | null;
+  phone: string | null;
+}

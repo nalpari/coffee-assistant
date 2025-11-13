@@ -32,7 +32,7 @@ export async function searchMenuByName(
     const normalizedMenuName = menuName.toLowerCase().trim();
 
     // 1. menu 테이블에서 메뉴명으로 검색
-    let menuQuery = supabase
+    const menuQuery = supabase
       .from('menu')
       .select('id, name, price, discount_price, hot, cold, description, category_id')
       .ilike('name', `%${normalizedMenuName}%`)
