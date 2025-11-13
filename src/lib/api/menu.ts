@@ -287,6 +287,143 @@ export async function getMenuItemsByCategory(categoryId: number): Promise<MenuIt
 }
 
 /**
+ * 특정 매장의 메뉴 목록 조회
+ *
+ * @param storeId - 매장 ID
+ * @returns 매장에 등록된 메뉴 목록
+ */
+export async function getStoreMenus(storeId: number): Promise<MenuItemDisplay[]> {
+  if (!storeId || Number.isNaN(storeId)) {
+    return [];
+  }
+
+  // 1. 매장-메뉴 매핑 조회
+  const { data: storeMenuData, error: storeMenuError } = await supabase
+    .from('store_menu')
+    .select('menu_id, is_available')
+    .eq('store_id', storeId)
+    .order('menu_id', { ascending: true });
+
+  if (storeMenuError) {
+    console.error('매장별 메뉴 조회 오류:', storeMenuError);
+    throw new Error('매장 메뉴 정보를 불러오는데 실패했습니다.');
+  }
+
+  const menuIds = (storeMenuData ?? []).map((item) => item.menu_id);
+  if (menuIds.length === 0) {
+    return [];
+  }
+
+  const availabilityMap = new Map<number, boolean>();
+  storeMenuData?.forEach((item) => {
+    availabilityMap.set(item.menu_id, item.is_available ?? true);
+  });
+
+  // 2. 메뉴 기본 정보 조회
+  const { data: menuData, error: menuError } = await supabase
+    .from('menu')
+    .select(
+      `
+        id,
+        name,
+        description,
+        price,
+        discount_price,
+        cold,
+        hot,
+        category_id,
+        status,
+        marketing,
+        order_no,
+        category:category_id (
+          id,
+          name
+        )
+      `
+    )
+    .in('id', menuIds);
+
+  if (menuError) {
+    console.error('매장 메뉴 조회 오류:', menuError);
+    throw new Error('매장 메뉴 정보를 불러오는데 실패했습니다.');
+  }
+
+  if (!menuData || menuData.length === 0) {
+    return [];
+  }
+
+  // 3. 이미지 조회
+  const { data: imageData, error: imageError } = await supabase
+    .from('image')
+    .select('*')
+    .in('menu_id', menuIds)
+    .order('menu_id', { ascending: true })
+    .order('ordering', { ascending: true });
+
+  if (imageError) {
+    console.error('매장 메뉴 이미지 조회 오류:', imageError);
+  }
+
+  // 4. 이미지 매핑
+  type ImageRow = {
+    menu_id: number;
+    file_uuid: string;
+    file_name: string;
+    menu_type: string;
+    ordering: number;
+    created_by: string;
+    created_date: string;
+  };
+
+  const imagesByMenuId = new Map<number, ImageRow[]>();
+  imageData?.forEach((image: ImageRow) => {
+    if (!imagesByMenuId.has(image.menu_id)) {
+      imagesByMenuId.set(image.menu_id, []);
+    }
+    imagesByMenuId.get(image.menu_id)!.push(image);
+  });
+
+  // 5. MenuItemDisplay 변환
+  const menuItems: MenuItemDisplay[] = menuData.map((menu) => {
+    const itemWithImages: MenuItemData = {
+      id: menu.id,
+      name: menu.name,
+      description: menu.description,
+      price: menu.price,
+      discount_price: menu.discount_price,
+      cold: menu.cold,
+      hot: menu.hot,
+      category_id: menu.category_id,
+      status: menu.status,
+      marketing: menu.marketing,
+      order_no: menu.order_no,
+      category: Array.isArray(menu.category) ? menu.category[0] : menu.category,
+      image: imagesByMenuId.get(menu.id) ?? [],
+    };
+
+    const mapped = mapMenuItemToDisplay(itemWithImages);
+    const storeAvailability = availabilityMap.get(menu.id);
+
+    return {
+      ...mapped,
+      available: (storeAvailability ?? true) && mapped.available,
+    };
+  });
+
+  // 6. 원래 순서 정렬 (store_menu -> menu_id 순서 유지, 그 외 order_no)
+  const orderMap = new Map<number, number>();
+  menuIds.forEach((menuId, index) => {
+    orderMap.set(menuId, index);
+  });
+
+  return menuItems.sort((a, b) => {
+    const orderA = orderMap.get(a.id) ?? a.orderNo ?? 0;
+    const orderB = orderMap.get(b.id) ?? b.orderNo ?? 0;
+    return orderA - orderB;
+  });
+}
+
+/**
  * 메뉴 검색
  *
  * @param query - 검색어

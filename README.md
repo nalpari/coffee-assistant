@@ -98,11 +98,21 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Anthropic AI Configuration
 ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Site URL Configuration (OAuth 리다이렉트용)
+# 로컬 개발: http://localhost:3000
+# 프로덕션: https://your-domain.com
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 **환경 변수 획득 방법:**
 - **Supabase**: [Supabase 대시보드](https://supabase.com/dashboard) → 프로젝트 설정 → API
 - **Anthropic**: [Anthropic Console](https://console.anthropic.com/) → API Keys
+
+**중요:** OAuth 설정 후 다음 명령어로 설정을 검증할 수 있습니다:
+```bash
+pnpm validate:oauth
+```
 
 ### 3. 데이터베이스 설정 (Supabase)
 
@@ -151,6 +161,13 @@ pnpm test:ui
 pnpm test:coverage
 ```
 
+### 유틸리티
+
+```bash
+# OAuth 설정 검증 (Google OAuth 설정 확인)
+pnpm validate:oauth
+```
+
 ### 코드 품질
 
 ```bash
@@ -185,46 +202,92 @@ coffee-assistant-with-ai/
 │   │   ├── ai-recommendations/   # AI 추천 페이지
 │   │   ├── products/[id]/        # 제품 상세
 │   │   ├── orders/               # 주문 관리
+│   │   │   ├── [id]/             # 주문 상세
+│   │   │   │   └── complete/     # 주문 완료 페이지
+│   │   │   └── manage/           # 주문 관리 대시보드
 │   │   ├── checkout/             # 결제
 │   │   ├── dashboard/            # 대시보드
 │   │   ├── auth/                 # 인증 페이지
+│   │   │   ├── login/            # 로그인 페이지
+│   │   │   └── callback/         # OAuth 콜백
 │   │   ├── api/                  # API 라우트
 │   │   │   ├── chat/             # AI 채팅
 │   │   │   └── orders/           # 주문 API
 │   │   └── actions/              # 서버 액션
+│   │       ├── order.ts          # 주문 작업
+│   │       └── payment.ts        # 결제 처리
 │   │
 │   ├── components/               # React 컴포넌트
 │   │   ├── ui/                   # shadcn/ui 컴포넌트
 │   │   ├── auth/                 # 인증 컴포넌트
+│   │   │   ├── GoogleSignInButton.tsx
+│   │   │   ├── UserProfile.tsx
+│   │   │   ├── UserAvatar.tsx
+│   │   │   ├── LogoutButton.tsx
+│   │   │   └── ProtectedRoute.tsx
 │   │   ├── cart/                 # 장바구니
+│   │   │   ├── CartButton.tsx
+│   │   │   ├── CartSheet.tsx
+│   │   │   └── CartItem.tsx
 │   │   ├── menu/                 # 메뉴 디스플레이
+│   │   │   ├── MenuGrid.tsx
+│   │   │   ├── MenuCard.tsx
+│   │   │   ├── CategoryTabs.tsx
+│   │   │   └── LoadingSpinner.tsx
+│   │   ├── product/              # 제품 컴포넌트
+│   │   │   └── QuantityControl.tsx
 │   │   ├── orders/               # 주문 컴포넌트
+│   │   │   ├── OrderList.tsx
+│   │   │   └── OrderCard.tsx
 │   │   ├── chat/                 # AI 채팅 UI
-│   │   └── layout/               # 레이아웃 컴포넌트
+│   │   │   ├── ChatInput.tsx
+│   │   │   └── ChatMessage.tsx
+│   │   ├── layout/               # 레이아웃 컴포넌트
+│   │   │   ├── Header.tsx
+│   │   │   ├── FooterNavigation.tsx
+│   │   │   ├── FooterNavButton.tsx
+│   │   │   └── AiRecommendationHeader.tsx
+│   │   └── providers/            # 컨텍스트 프로바이더
+│   │       └── QueryProvider.tsx # TanStack Query 프로바이더
 │   │
 │   ├── lib/                      # 유틸리티 & 클라이언트
-│   │   ├── supabase.ts           # Supabase 클라이언트
+│   │   ├── utils.ts              # cn() 유틸리티
+│   │   ├── supabase.ts           # Supabase 클라이언트 (클라이언트)
+│   │   ├── supabase-auth.ts      # Supabase 인증 헬퍼
+│   │   ├── supabase-server.ts    # Supabase 서버 클라이언트
 │   │   ├── claude-client.ts      # Claude API 클라이언트
 │   │   ├── shopping-agent.ts     # AI 쇼핑 에이전트
-│   │   └── ...                   # 기타 유틸리티
+│   │   ├── conversation-manager.ts # 대화 상태 관리
+│   │   ├── order-utils.ts        # 주문 처리 유틸리티
+│   │   ├── payment-utils.ts      # 결제 유틸리티
+│   │   ├── price-utils.ts        # 가격 계산 유틸리티
+│   │   └── api/
+│   │       └── menu.ts           # 메뉴 API 함수
 │   │
 │   ├── hooks/                    # 커스텀 훅
-│   │   ├── use-menu-query.ts     # 메뉴 데이터
-│   │   ├── use-orders-query.ts   # 주문 데이터
-│   │   └── ...
+│   │   ├── useCart.ts            # 장바구니 상태 관리
+│   │   ├── use-menu-query.ts     # 메뉴 데이터 페칭
+│   │   ├── use-product-query.ts  # 제품 상세 페칭
+│   │   ├── use-orders-query.ts   # 주문 데이터 페칭
+│   │   └── use-infinite-scroll.ts # 무한 스크롤
 │   │
 │   ├── store/                    # Zustand 스토어
 │   │   ├── cart-store.ts         # 장바구니 상태
 │   │   └── chat-store.ts         # 채팅 상태
 │   │
 │   ├── types/                    # TypeScript 타입
-│   │   ├── menu.ts
-│   │   ├── order.ts
-│   │   ├── cart.ts
-│   │   └── ...
+│   │   ├── menu.ts               # 메뉴 및 제품 타입
+│   │   ├── cart.ts               # 장바구니 아이템 타입
+│   │   ├── chat.ts               # 채팅 메시지 타입
+│   │   ├── order.ts              # 주문 타입
+│   │   ├── auth.ts               # 인증 타입
+│   │   └── shopping-agent.ts     # AI 에이전트 타입
 │   │
-│   └── contexts/                 # React 컨텍스트
-│       └── AuthContext.tsx       # 인증 컨텍스트
+│   ├── contexts/                 # React 컨텍스트
+│   │   └── AuthContext.tsx       # 인증 컨텍스트
+│   │
+│   └── data/                     # 목 데이터 및 상수
+│       └── mock-menu.ts          # 개발용 목 메뉴 데이터
 │
 ├── middleware.ts                 # Next.js 미들웨어 (세션 관리)
 ├── vitest.config.ts              # Vitest 설정
@@ -342,9 +405,19 @@ pnpm test:coverage
 
 프로젝트 설정 → Environment Variables에서 다음 변수들을 추가:
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `ANTHROPIC_API_KEY`
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Anthropic AI
+ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Site URL (프로덕션 도메인으로 변경)
+NEXT_PUBLIC_SITE_URL=https://your-production-domain.com
+```
+
+**중요**: `NEXT_PUBLIC_SITE_URL`은 OAuth 리다이렉트를 위해 반드시 실제 프로덕션 URL로 설정해야 합니다.
 
 ## 📚 개발 가이드
 

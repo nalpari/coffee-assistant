@@ -54,10 +54,11 @@ describe('menu API', () => {
         }),
       };
 
-      vi.mocked(supabase.from).mockImplementation((table: string) => {
-        if (table === 'menu') return mockMenuQuery as any;
-        if (table === 'image') return mockImageQuery as any;
-        return {} as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation((table: string): any => {
+        if (table === 'menu') return mockMenuQuery;
+        if (table === 'image') return mockImageQuery;
+        return {};
       });
 
       // 실행
@@ -119,10 +120,11 @@ describe('menu API', () => {
         }),
       };
 
-      vi.mocked(supabase.from).mockImplementation((table: string) => {
-        if (table === 'menu') return mockMenuQuery as any;
-        if (table === 'image') return mockImageQuery as any;
-        return {} as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation((table: string): any => {
+        if (table === 'menu') return mockMenuQuery;
+        if (table === 'image') return mockImageQuery;
+        return {};
       });
 
       const result = await getMenuItemById(1);
@@ -191,10 +193,11 @@ describe('menu API', () => {
         }),
       };
 
-      vi.mocked(supabase.from).mockImplementation((table: string) => {
-        if (table === 'menu') return mockMenuQuery as any;
-        if (table === 'image') return mockImageQuery as any;
-        return {} as any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      vi.mocked(supabase.from).mockImplementation((table: string): any => {
+        if (table === 'menu') return mockMenuQuery;
+        if (table === 'image') return mockImageQuery;
+        return {};
       });
 
       const result = await getMenuItemById(1);
@@ -214,6 +217,7 @@ describe('menu API', () => {
         }),
       };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       vi.mocked(supabase.from).mockReturnValue(mockMenuQuery as any);
 
       const result = await getMenuItemById(999);

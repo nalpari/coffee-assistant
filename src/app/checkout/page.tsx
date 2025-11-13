@@ -11,7 +11,7 @@ import Link from 'next/link'
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const { items, getTotalAmount, clearCart } = useCart()
+  const { items, getTotalAmount, clearCart, storeId } = useCart()
   const [isPending, startTransition] = useTransition()
   const [mounted, setMounted] = useState(false)
 
@@ -25,8 +25,8 @@ export default function CheckoutPage() {
 
   // 클라이언트 사이드에서만 렌더링 (hydration 오류 방지)
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,6 +38,7 @@ export default function CheckoutPage() {
         customerName: formData.customerName,
         customerPhone: formData.customerPhone,
         customerEmail: formData.customerEmail || undefined,
+        storeId: storeId || undefined,  // 매장 ID 전달
         items: cartItemsToOrderItems(items),
         totalAmount: getTotalAmount(),
         discountAmount: 0,

@@ -24,8 +24,7 @@ export function CartButton({ itemCount, onClick }: CartButtonProps) {
           <ShoppingCart className="h-6 w-6" />
           {itemCount > 0 && (
             <Badge
-              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center"
-              variant="destructive"
+              className="absolute -top-2 -right-2 h-6 w-6 rounded-full p-0 flex items-center justify-center bg-primary text-primary-foreground"
             >
               {itemCount}
             </Badge>

@@ -58,11 +58,11 @@ export function CartItem({ item, onUpdateQuantity, onRemove }: CartItemProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 -mt-1 -mr-1"
+            className="h-6 w-6 -mt-1 -mr-1 rounded-full border border-[#E2E2E2] transition-colors hover:bg-gray-50 bg-white"
             onClick={() => onRemove(item.id)}
             aria-label="상품 삭제"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3 text-[#1C1C1C]" strokeWidth={1.5} />
           </Button>
         </div>
 

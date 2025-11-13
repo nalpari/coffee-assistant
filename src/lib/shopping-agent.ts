@@ -402,11 +402,20 @@ export class ShoppingAgent {
     created_at: string;
     items?: unknown[];
     order_items?: Array<{ menu_id: number; menu?: { name: string; price: number } }>;
+    store?: { id: number; name: string; address: string | null; phone: string | null } | null;
   }>> {
     try {
       const { data: orders, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          store:stores (
+            id,
+            name,
+            address,
+            phone
+          )
+        `)
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(limit);

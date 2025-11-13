@@ -11,6 +11,7 @@ export interface CreateOrderRequest {
   customerName: string
   customerPhone: string
   customerEmail?: string
+  storeId?: number  // 매장 ID (선택적)
   items: Array<{
     menuId: number
     menuName: string
@@ -33,6 +34,13 @@ export interface CreateOrderResponse {
 export interface Order {
   id: number
   order_number: string
+  store_id: number | null  // 매장 ID
+  store?: {
+    id: number
+    name: string
+    address: string | null
+    phone: string | null
+  } | null  // 매장 정보
   customer_name: string
   customer_phone: string
   customer_email: string | null
@@ -112,11 +120,12 @@ export async function createOrder(
     // 5. 서버 클라이언트 생성
     const supabase = await createSupabaseServerClient()
 
-    // 6. orders 테이블에 주문 생성 (user_id 포함)
+    // 6. orders 테이블에 주문 생성 (user_id, store_id 포함)
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         user_id: user.id,
+        store_id: request.storeId || null,
         order_number: orderNumber,
         customer_name: request.customerName,
         customer_phone: request.customerPhone,
@@ -190,7 +199,13 @@ export async function getOrderById(orderId: number): Promise<Order | null> {
       .select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        store:stores (
+          id,
+          name,
+          address,
+          phone
+        )
       `)
       .eq('id', orderId)
       .single()
@@ -221,7 +236,13 @@ export async function getOrderByNumber(orderNumber: string): Promise<Order | nul
       .select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        store:stores (
+          id,
+          name,
+          address,
+          phone
+        )
       `)
       .eq('order_number', orderNumber)
       .single()
@@ -257,7 +278,13 @@ export async function getUserOrders(limit: number = 50): Promise<Order[]> {
       .select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        store:stores (
+          id,
+          name,
+          address,
+          phone
+        )
       `)
       .eq('user_id', user.id)
       .order('created_at', { ascending: false })
@@ -289,7 +316,13 @@ export async function getOrdersByPhone(phone: string): Promise<Order[]> {
       .select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        store:stores (
+          id,
+          name,
+          address,
+          phone
+        )
       `)
       .eq('customer_phone', phone)
       .order('created_at', { ascending: false })
@@ -320,7 +353,13 @@ export async function getRecentOrders(limit: number = 50): Promise<Order[]> {
       .select(`
         *,
         order_items (*),
-        payments (*)
+        payments (*),
+        store:stores (
+          id,
+          name,
+          address,
+          phone
+        )
       `)
       .order('created_at', { ascending: false })
       .limit(limit)

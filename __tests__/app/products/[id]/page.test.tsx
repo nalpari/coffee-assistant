@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider, type UseQueryResult } from '@tanstack/react-query';
 import ProductDetailPage from '@/app/products/[id]/page';
 import { useParams } from 'next/navigation';
 import type { MenuItemDisplay } from '@/types/menu';
@@ -71,7 +71,7 @@ describe('ProductDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     renderWithQueryClient(<ProductDetailPage />);
 
@@ -122,7 +122,7 @@ describe('ProductDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     renderWithQueryClient(<ProductDetailPage />);
 
@@ -159,7 +159,7 @@ describe('ProductDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     // 콘솔 에러 감지
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -187,7 +187,7 @@ describe('ProductDetailPage', () => {
       isLoading: true,
       isError: false,
       error: null,
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     renderWithQueryClient(<ProductDetailPage />);
 
@@ -201,7 +201,7 @@ describe('ProductDetailPage', () => {
       isLoading: false,
       isError: true,
       error: new Error('Failed to fetch product'),
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     renderWithQueryClient(<ProductDetailPage />);
 
@@ -233,7 +233,7 @@ describe('ProductDetailPage', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any);
+    } as UseQueryResult<MenuItemDisplay, Error>);
 
     renderWithQueryClient(<ProductDetailPage />);
 

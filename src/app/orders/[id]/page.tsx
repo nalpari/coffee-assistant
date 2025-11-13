@@ -6,7 +6,7 @@ import { formatPrice } from '@/lib/price-utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Receipt } from 'lucide-react'
+import { OrderHeader } from '@/components/layout/OrderHeader'
 
 export default async function OrderDetailPage({
   params,
@@ -33,7 +33,7 @@ export default async function OrderDetailPage({
       case 'completed':
         return 'default' // 파란색
       case 'cancelled':
-        return 'destructive' // 빨간색
+        return 'secondary' // 회색 (취소된 주문도 파란색 계통으로)
       default:
         return 'secondary'
     }
@@ -42,26 +42,15 @@ export default async function OrderDetailPage({
   return (
     <div className="min-h-screen bg-background pb-28">
       {/* 헤더 */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center gap-4">
-            <Link href="/orders">
-              <Button variant="ghost" size="icon">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <Receipt className="h-5 w-5" />
-                <h1 className="text-lg font-bold">주문 상세</h1>
-              </div>
-            </div>
-            <Badge variant={getStatusBadgeVariant(order.status)}>
-              {getOrderStatusLabel(order.status)}
-            </Badge>
-          </div>
-        </div>
-      </div>
+      <OrderHeader
+        title="주문 상세"
+        backHref="/orders"
+        rightElement={
+          <Badge variant={getStatusBadgeVariant(order.status)}>
+            {getOrderStatusLabel(order.status)}
+          </Badge>
+        }
+      />
 
       {/* 주문 정보 */}
       <div className="container mx-auto px-4 py-6">
@@ -85,6 +74,33 @@ export default async function OrderDetailPage({
               </p>
             </div>
           </div>
+
+          {/* 매장 정보 */}
+          {order.store && (
+            <div className="bg-white rounded-lg shadow-sm p-6">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase mb-4">
+                매장 정보
+              </h2>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">매장명</span>
+                  <span className="font-medium">{order.store.name}</span>
+                </div>
+                {order.store.address && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">주소</span>
+                    <span className="font-medium text-right max-w-[60%]">{order.store.address}</span>
+                  </div>
+                )}
+                {order.store.phone && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">전화번호</span>
+                    <span className="font-medium">{order.store.phone}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* 주문자 정보 */}
           <div className="bg-white rounded-lg shadow-sm p-6">

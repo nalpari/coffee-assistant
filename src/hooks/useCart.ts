@@ -19,11 +19,13 @@ export interface CartItem {
 
 interface CartStore {
   items: CartItem[]
+  storeId: number | null  // 현재 선택된 매장 ID
   addItem: (item: CartItem) => void
   removeItem: (menuId: number) => void
   updateQuantity: (menuId: number, quantity: number) => void
   updateTemperature: (menuId: number, temperature: 'hot' | 'cold') => void
   clearCart: () => void
+  setStoreId: (storeId: number | null) => void
   getTotalAmount: () => number
   getTotalItems: () => number
   getItemCount: (menuId: number) => number
@@ -37,6 +39,7 @@ export const useCart = create<CartStore>()(
   persist(
     (set, get) => ({
       items: [],
+      storeId: null,
 
       /**
        * 장바구니에 항목 추가
@@ -107,7 +110,14 @@ export const useCart = create<CartStore>()(
        * 장바구니 비우기
        */
       clearCart: () => {
-        set({ items: [] })
+        set({ items: [], storeId: null })
+      },
+
+      /**
+       * 매장 ID 설정
+       */
+      setStoreId: (storeId) => {
+        set({ storeId })
       },
 
       /**

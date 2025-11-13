@@ -78,6 +78,9 @@ export async function POST(req: NextRequest) {
     let updatedCart = context.cart;
     let orders: Order[] | undefined = undefined;
     let order: Order | undefined = undefined;
+    
+    // 사용자 메시지에 "결제", "주문", "구매" 등의 단어가 포함되어 있는지 확인
+    const hasCheckoutIntent = /결제|주문|구매/.test(message.toLowerCase());
 
     if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
       const productIds = aiResponse.products.map((p) => p.id);
@@ -121,6 +124,93 @@ export async function POST(req: NextRequest) {
             quantity: productAction.quantity,
           });
         }
+      }
+      
+      // 결제 의도가 있고 장바구니에 아이템이 추가되었으면 자동으로 결제 진행
+      if (hasCheckoutIntent && updatedCart.length > 0) {
+        // add_to_cart 후 자동으로 checkout 처리
+        // 사용자 정보 가져오기
+        const userEmail = session.user.email || '';
+        const userName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '고객';
+        const userPhone = session.user.phone || '010-0000-0000'; // 기본값 사용
+
+        // 장바구니 아이템을 주문 형식으로 변환
+        const orderItems = updatedCart.map(item => ({
+          menuId: item.id,
+          menuName: item.name,
+          menuPrice: item.discountPrice ?? item.price,
+          quantity: item.quantity,
+          temperature: (item.cold ? 'cold' : item.hot ? 'hot' : undefined) as 'hot' | 'cold' | undefined,
+        }));
+
+        // 총 금액 계산
+        const totalAmount = updatedCart.reduce((sum, item) => {
+          const price = item.discountPrice ?? item.price;
+          return sum + price * item.quantity;
+        }, 0);
+
+        // 주문 생성
+        const orderResult = await createOrder({
+          customerName: userName,
+          customerPhone: userPhone,
+          customerEmail: userEmail || undefined,
+          items: orderItems,
+          totalAmount,
+          discountAmount: 0,
+          orderNotes: 'AI 추천을 통한 주문',
+        });
+
+        if (!orderResult.success || !orderResult.orderId) {
+          return NextResponse.json({
+            message: `주문 생성에 실패했습니다: ${orderResult.error || '알 수 없는 오류'}`,
+            action: 'chat',
+            cart: updatedCart,
+          });
+        }
+
+        // 결제 처리 (기본 결제 방법: 카드)
+        const paymentResult = await processPayment({
+          orderId: orderResult.orderId,
+          paymentMethod: 'card',
+          amount: totalAmount,
+        });
+
+        if (!paymentResult.success) {
+          return NextResponse.json({
+            message: `결제 처리에 실패했습니다: ${paymentResult.error || '알 수 없는 오류'}`,
+            action: 'chat',
+            cart: updatedCart,
+          });
+        }
+
+        // 주문 완료 후 장바구니 비우기
+        updatedCart = [];
+        conversationManager.clearCart(userId);
+
+        // 주문 정보 조회 (주문 완료 페이지로 이동하기 위해)
+        const supabaseClient = await createSupabaseServerClient();
+        const { data: orderData } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .eq('id', orderResult.orderId)
+          .single();
+
+        if (orderData) {
+          order = {
+            id: orderData.id.toString(),
+            order_number: orderData.order_number,
+            user_id: (orderData.user_id as string) || userId,
+            status: orderData.status,
+            items: orderData.items || [],
+            final_amount: orderData.final_amount,
+            created_at: orderData.created_at,
+            updated_at: orderData.updated_at || orderData.created_at,
+          };
+        }
+
+        // 성공 메시지 업데이트
+        aiResponse.message = `주문이 완료되었습니다! 주문번호: ${orderResult.orderNumber}\n결제가 정상적으로 처리되었습니다.`;
+        aiResponse.action = 'checkout';
       }
     } else if (aiResponse.action === 'remove_from_cart' && aiResponse.products) {
       for (const productAction of aiResponse.products) {

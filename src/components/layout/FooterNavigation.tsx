@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export function FooterNavigation() {
   const pathname = usePathname();
@@ -109,10 +110,12 @@ export function FooterNavigation() {
             >
             {/* Icon Container - elevated above baseline */}
             <div className="relative w-[42px] h-[42px] flex items-center justify-center -mt-[22px]">
-              <img
+              <Image
                 src="https://api.builder.io/api/v1/image/assets/TEMP/b4d9f6824ed2cce099fd86367b8c233ec9961e82?width=84"
                 alt="AI"
-                className="w-[42px] h-[42px] object-contain"
+                width={42}
+                height={42}
+                className="object-contain"
               />
             </div>
             {/* AI Text */}

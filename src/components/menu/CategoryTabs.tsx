@@ -39,8 +39,8 @@ export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTab
                   px-3 py-2 sm:px-4 sm:py-2.5
                   cursor-pointer flex-shrink-0
                   ${isActive
-                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/50 scale-105'
-                    : 'bg-white border border-gray-200 hover:border-orange-300 hover:shadow-md hover:scale-105 text-gray-700 hover:text-orange-600'
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50 scale-105'
+                    : 'bg-white border border-gray-200 hover:border-blue-300 hover:shadow-md hover:scale-105 text-gray-700 hover:text-blue-600'
                   }
                 `}
               >

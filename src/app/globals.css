@@ -93,6 +93,24 @@
     outline-offset: 2px;
     border-radius: 0.25rem;
   }
+
+  /* 인터랙티브 요소 커서 스타일 */
+  button:not(:disabled),
+  a,
+  [role="button"]:not([aria-disabled="true"]),
+  [tabindex]:not([tabindex="-1"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /* Next.js Link 컴포넌트 */
+  a[href] {
+    cursor: pointer;
+  }
 }
 
 @layer utilities {

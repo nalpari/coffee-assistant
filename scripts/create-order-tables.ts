@@ -29,7 +29,7 @@ async function createOrderTables() {
 
   try {
     // SQL 실행
-    const { data, error } = await supabase.rpc('exec_sql', { sql_query: sql });
+    const { error } = await supabase.rpc('exec_sql', { sql_query: sql });
 
     if (error) {
       console.error('❌ 테이블 생성 실패:', error);

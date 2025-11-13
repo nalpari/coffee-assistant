@@ -23,8 +23,11 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 /**
  * Parse INSERT SQL statements and convert to JavaScript objects
+ * Currently unused but kept for potential future use
  */
-function parseSQLInsert(sql: string, tableName: string): any[] {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function parseSQLInsert(sql: string, tableName: string): Record<string, unknown>[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const results: any[] = [];
 
   // Find all INSERT statements
@@ -64,6 +67,7 @@ function parseSQLInsert(sql: string, tableName: string): any[] {
       });
 
       // Create object from columns and values
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const obj: any = {};
       columns.forEach((col, idx) => {
         obj[col] = values[idx];
@@ -88,7 +92,7 @@ async function insertData() {
     console.log('📝 Step 2: Executing menu data insertion...');
 
     // Execute SQL directly using Supabase's SQL query
-    const { data: menuData, error: menuError } = await supabase
+    const { error: menuError } = await supabase
       .rpc('exec_sql', {
         query: menuSql
       });

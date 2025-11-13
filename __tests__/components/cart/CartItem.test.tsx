@@ -43,6 +43,7 @@ describe('CartItem', () => {
   });
 
   it('should show fallback when image is empty string', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockItem = createMockItem({ image: '' as any });
 
     render(
@@ -58,6 +59,7 @@ describe('CartItem', () => {
   });
 
   it('should show fallback when image is whitespace only', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockItem = createMockItem({ image: '   ' as any });
 
     render(
@@ -161,6 +163,7 @@ describe('CartItem', () => {
 
   it('should not throw URL error with empty string image', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mockItem = createMockItem({ image: '' as any });
 
     render(

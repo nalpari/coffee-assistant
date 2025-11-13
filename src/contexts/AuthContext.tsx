@@ -22,8 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // 클라이언트 마운트 완료 표시
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
 
     // 초기 세션 확인
     supabase.auth.getSession().then(({ data: { session } }) => {

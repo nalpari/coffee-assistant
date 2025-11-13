@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GeolocationProvider } from "@/contexts/GeolocationContext";
 import { FooterNavigation } from "@/components/layout/FooterNavigation";
 import "./globals.css";
 
@@ -32,10 +33,12 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <AuthProvider>
-          <QueryProvider>
-            {children}
-            <FooterNavigation />
-          </QueryProvider>
+          <GeolocationProvider>
+            <QueryProvider>
+              {children}
+              <FooterNavigation />
+            </QueryProvider>
+          </GeolocationProvider>
         </AuthProvider>
       </body>
     </html>

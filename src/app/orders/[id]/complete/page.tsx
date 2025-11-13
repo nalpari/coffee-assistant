@@ -4,6 +4,7 @@ import { getPaymentMethodLabel } from '@/lib/payment-utils'
 import { formatPrice } from '@/lib/price-utils'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { OrderHeader } from '@/components/layout/OrderHeader'
 
 export default async function OrderCompletePage({
   params,
@@ -20,8 +21,15 @@ export default async function OrderCompletePage({
   const payment = order.payments?.[0]
 
   return (
-    <div className="container mx-auto px-4 py-8 pb-28">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen bg-background pb-28">
+      {/* 헤더 */}
+      <OrderHeader
+        title="주문 완료"
+        backHref="/orders"
+      />
+
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto">
         {/* 성공 아이콘 및 헤더 */}
         <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
           <div className="text-center mb-8">
@@ -50,6 +58,31 @@ export default async function OrderCompletePage({
 
           {/* 주문 정보 */}
           <div className="border-t border-b py-6 space-y-6">
+            {/* 매장 정보 */}
+            {order.store && (
+              <div>
+                <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3">
+                  매장 정보
+                </h2>
+                <div className="space-y-2">
+                  <p className="text-gray-900">
+                    <span className="font-medium">매장명:</span> {order.store.name}
+                  </p>
+                  {order.store.address && (
+                    <p className="text-gray-900">
+                      <span className="font-medium">주소:</span> {order.store.address}
+                    </p>
+                  )}
+                  {order.store.phone && (
+                    <p className="text-gray-900">
+                      <span className="font-medium">전화번호:</span>{' '}
+                      {order.store.phone}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* 주문자 정보 */}
             <div>
               <h2 className="text-sm font-semibold text-gray-500 uppercase mb-3">
@@ -191,6 +224,7 @@ export default async function OrderCompletePage({
               홈으로 돌아가기
             </Button>
           </Link>
+        </div>
         </div>
       </div>
     </div>

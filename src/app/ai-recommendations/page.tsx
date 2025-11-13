@@ -12,12 +12,26 @@ import { useCartStore } from '@/store/cart-store';
 import { useAuth } from '@/contexts/AuthContext';
 import type { ChatResponse } from '@/types/shopping-agent';
 
+function formatTimestamp(date: Date): string {
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const period = hours >= 12 ? '오후' : '오전';
+  const displayHours = hours > 12 ? hours - 12 : hours === 0 ? 12 : hours;
+  const displayMinutes = minutes.toString().padStart(2, '0');
+  
+  const days = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
+  const dayName = days[date.getDay()];
+  
+  return `${period} ${displayHours}:${displayMinutes}  ${dayName}`;
+}
+
 export default function AIRecommendationsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { messages, isLoading, addMessage, clearMessages, setLoading } = useChatStore();
   const { items: cartItems } = useCartStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const hasInitializedRef = useRef(false);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
 
   // 메시지 자동 스크롤
@@ -25,9 +39,10 @@ export default function AIRecommendationsPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // 초기 환영 메시지
+  // 초기 환영 메시지 (한 번만 실행)
   useEffect(() => {
-    if (messages.length === 0) {
+    if (!hasInitializedRef.current && messages.length === 0) {
+      hasInitializedRef.current = true;
       addMessage({
         role: 'assistant',
         content: '안녕하세요! ☕️\n\n저는 AI 쇼핑 어시스턴트입니다.\n\n원하시는 커피 종류, 취향, 기분을 말씀해주시면 맞춤 추천과 함께 장바구니 관리도 도와드릴게요!',
@@ -109,8 +124,10 @@ export default function AIRecommendationsPage() {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleReset = () => {
     clearMessages();
+    hasInitializedRef.current = false;
     // 환영 메시지 다시 추가
     setTimeout(() => {
       addMessage({
@@ -185,15 +202,86 @@ export default function AIRecommendationsPage() {
 
           {/* 로딩 인디케이터 */}
           {isLoading && (
-            <div className="flex gap-3 mb-4">
-              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white animate-pulse" />
+            <div className="flex flex-col items-start gap-4 mb-8 animate-in fade-in-50 slide-in-from-bottom-3 duration-300">
+              {/* 시간 표시 */}
+              <div className="flex pl-10 justify-center items-center gap-2.5">
+                <span
+                  className="text-[#72777A]"
+                  style={{
+                    fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+                    fontSize: '12px',
+                    fontWeight: 500,
+                    lineHeight: '16px',
+                    letterSpacing: '-0.3px',
+                  }}
+                >
+                  {formatTimestamp(new Date())}
+                </span>
               </div>
-              <div className="flex-1 max-w-[80%] rounded-2xl px-4 py-3 bg-muted">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                  <div className="w-2 h-2 bg-muted-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+
+              {/* 메시지 영역 */}
+              <div className="flex items-start gap-2 w-full max-w-[90%] sm:max-w-[80%] lg:max-w-[70%]">
+                {/* AI 아이콘 */}
+                <div className="flex-shrink-0 w-8 h-8">
+                  <svg
+                    width="32"
+                    height="32"
+                    viewBox="0 0 32 32"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <circle cx="16" cy="16" r="16" fill="url(#gradient)" />
+                    <path
+                      d="M16 8L17.5 13L22 13.5L17.5 15L16 20L14.5 15L10 13.5L14.5 13L16 8Z"
+                      fill="white"
+                    />
+                    <path
+                      d="M21 10L21.5 12L23 12.5L21.5 13L21 15L20.5 13L19 12.5L20.5 12L21 10Z"
+                      fill="white"
+                      opacity="0.8"
+                    />
+                    <defs>
+                      <linearGradient
+                        id="gradient"
+                        x1="0"
+                        y1="0"
+                        x2="32"
+                        y2="32"
+                        gradientUnits="userSpaceOnUse"
+                      >
+                        <stop stopColor="#4A97F7" />
+                        <stop offset="1" stopColor="#00D4FF" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                </div>
+
+                {/* 메시지 버블 */}
+                <div
+                  className="flex px-4 py-4 items-start gap-2.5 bg-[#F2F4F5] flex-1"
+                  style={{
+                    borderRadius: '0 24px 24px 24px',
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-[#303437]/50 rounded-full animate-bounce" />
+                      <div className="w-2 h-2 bg-[#303437]/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                      <div className="w-2 h-2 bg-[#303437]/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    </div>
+                    <p
+                      className="text-[#303437]"
+                      style={{
+                        fontFamily: 'Pretendard, -apple-system, Roboto, Helvetica, sans-serif',
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        lineHeight: '24px',
+                        letterSpacing: '-0.4px',
+                      }}
+                    >
+                      일하는 중...
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

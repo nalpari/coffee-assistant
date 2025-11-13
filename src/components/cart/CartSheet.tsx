@@ -2,29 +2,33 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ShoppingCart, Trash2 } from 'lucide-react';
+import { ShoppingCart, Trash2, X } from 'lucide-react';
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
-  SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { CartItem } from './CartItem';
 import { useCartStore } from '@/store/cart-store';
+import { useCart } from '@/hooks/useCart';
 import { createOrder } from '@/app/actions/order';
 import { processPayment } from '@/app/actions/payment';
 
 interface CartSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  storeId?: number;  // 매장 ID (선택적)
 }
 
-export function CartSheet({ open, onOpenChange }: CartSheetProps) {
+export function CartSheet({ open, onOpenChange, storeId: propStoreId }: CartSheetProps) {
   const router = useRouter();
   const { items, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems } = useCartStore();
+  const { storeId: cartStoreId, setStoreId } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // prop으로 전달된 storeId가 있으면 장바구니에 저장
+  const currentStoreId = propStoreId || cartStoreId;
 
   const totalPrice = getTotalPrice();
   const totalItems = getTotalItems();
@@ -35,11 +39,17 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
     setIsProcessing(true);
 
     try {
+      // prop으로 전달된 storeId가 있으면 장바구니에 저장
+      if (propStoreId && propStoreId !== cartStoreId) {
+        setStoreId(propStoreId);
+      }
+
       // 1. 주문 생성 (MVP: 고정된 고객 정보 사용)
       const orderResult = await createOrder({
         customerName: 'Guest User',
         customerPhone: '010-0000-0000',
         customerEmail: 'guest@example.com',
+        storeId: currentStoreId || undefined,  // 매장 ID 전달
         items: items.map(item => ({
           menuId: item.id,
           menuName: item.name,
@@ -85,25 +95,40 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-lg flex flex-col">
+      <SheetContent className="w-full sm:max-w-lg flex flex-col p-0 [&>button]:hidden">
+        {/* 접근성을 위한 숨겨진 제목 */}
+        <SheetTitle className="sr-only">
+          장바구니 {totalItems > 0 && `(${totalItems}개)`}
+        </SheetTitle>
+        
         {/* 헤더 */}
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            장바구니
-            {totalItems > 0 && (
-              <span className="text-sm text-muted-foreground">
-                ({totalItems}개)
-              </span>
-            )}
-          </SheetTitle>
-          <SheetDescription>
-            주문하실 상품을 확인해주세요
-          </SheetDescription>
-        </SheetHeader>
+        <header
+          className="sticky top-0 z-50 flex h-[68px] w-full items-center justify-center px-6 relative border-b transition-all duration-300 bg-white"
+          style={{
+            borderBottomColor: '#EEE',
+          }}
+        >
+          {/* 중앙: 제목 */}
+          <h1 
+            className="text-center text-xl font-semibold leading-[150%] tracking-[-0.5px]"
+            style={{ color: '#1A1A1A' }}
+          >
+            장바구니 {totalItems > 0 && `(${totalItems}개)`}
+          </h1>
+
+          {/* 오른쪽: 닫기 버튼 */}
+          <button
+            type="button"
+            onClick={() => onOpenChange(false)}
+            className="absolute right-6 top-4 flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] transition-colors hover:bg-gray-50 bg-white"
+            aria-label="닫기"
+          >
+            <X className="h-[18px] w-[18px] text-[#1C1C1C]" strokeWidth={1.5} />
+          </button>
+        </header>
 
         {/* 장바구니 내용 */}
-        <div className="flex-1 overflow-y-auto -mx-6 px-6">
+        <div className="flex-1 overflow-y-auto px-6">
           {items.length === 0 ? (
             // 빈 장바구니
             <div className="flex flex-col items-center justify-center h-full text-center py-12">
@@ -130,7 +155,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
 
         {/* 하단 액션 영역 */}
         {items.length > 0 && (
-          <div className="border-t pt-4 mt-4 space-y-4">
+          <div className="border-t pt-4 px-6 pb-6 space-y-4">
             {/* 전체 삭제 버튼 */}
             <Button
               variant="outline"

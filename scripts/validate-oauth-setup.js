@@ -166,7 +166,6 @@ function printResults() {
   let hasWarnings = false;
 
   results.forEach((result) => {
-    const icon = result.passed ? '✅' : '❌';
     const prefix = result.severity === 'error' ? '❌' : result.severity === 'warning' ? '⚠️ ' : 'ℹ️ ';
 
     console.log(`${prefix} ${result.message}`);

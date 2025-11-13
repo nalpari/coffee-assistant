@@ -10,15 +10,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg shadow-orange-500/50 hover:shadow-xl hover:shadow-orange-500/60",
+          "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60",
         destructive:
-          "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/50 hover:shadow-xl hover:shadow-red-500/60",
+          "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/50 hover:shadow-xl hover:shadow-blue-500/60",
         outline:
-          "border-2 border-orange-300 bg-white shadow-sm hover:border-orange-500 hover:bg-orange-50 hover:shadow-md text-gray-700 hover:text-orange-600",
+          "border-2 border-blue-300 bg-white shadow-sm hover:border-blue-500 hover:bg-blue-50 hover:shadow-md text-gray-700 hover:text-blue-600",
         secondary:
           "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-md hover:from-gray-200 hover:to-gray-300 hover:shadow-lg",
-        ghost: "hover:bg-orange-100 hover:text-orange-600",
-        link: "text-orange-600 underline-offset-4 hover:underline hover:text-orange-700",
+        ghost: "hover:bg-blue-100 hover:text-blue-600",
+        link: "text-blue-600 underline-offset-4 hover:underline hover:text-blue-700",
       },
       size: {
         default: "h-10 px-5 py-2",

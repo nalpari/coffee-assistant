@@ -1,8 +1,9 @@
 import Link from 'next/link';
-import { Receipt, Home } from 'lucide-react';
+import { Home, Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { OrderHeader } from '@/components/layout/OrderHeader';
 import { getUserOrders } from '@/app/actions/order';
 import { getOrderStatusLabel } from '@/lib/order-utils';
 import { getPaymentMethodLabel } from '@/lib/payment-utils';
@@ -14,22 +15,22 @@ export default async function OrdersPage() {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* 헤더 */}
-      <div className="bg-white border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Receipt className="h-6 w-6" />
-            <h1 className="text-xl font-bold">주문 내역</h1>
-          </div>
-          <Button variant="ghost" size="sm" asChild>
-            <Link href="/">
-              <Home className="h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
-      </div>
+      <OrderHeader
+        title="주문 내역"
+        backHref="/"
+        rightElement={
+          <Link 
+            href="/"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E2E2] transition-colors hover:bg-gray-50 bg-white"
+            aria-label="홈으로"
+          >
+            <Home className="h-[18px] w-[18px] text-[#1C1C1C]" strokeWidth={1.5} />
+          </Link>
+        }
+      />
 
       {/* 주문 목록 */}
-      <div className="container mx-auto px-4 py-6 space-y-4">
+      <div className="container mx-auto px-4 py-6">
         {orders.length === 0 ? (
           // 빈 목록
           <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -51,17 +52,21 @@ export default async function OrdersPage() {
             <p className="text-sm text-muted-foreground">
               총 {orders.length}건의 주문 내역
             </p>
-            {orders.map((order) => {
+            {orders.map((order, index) => {
               const itemCount = order.order_items?.length || 0;
               const firstItem = order.order_items?.[0];
               const payment = order.payments?.[0];
 
               return (
-                <Link key={order.id} href={`/orders/${order.id}/complete`}>
+                <Link 
+                  key={order.id} 
+                  href={`/orders/${order.id}/complete`}
+                  className={`block ${index < orders.length - 1 ? 'mb-6' : ''}`}
+                >
                   <Card className="hover:shadow-md transition-shadow cursor-pointer">
                     <CardHeader className="pb-3">
                       <div className="flex justify-between items-start">
-                        <div>
+                        <div className="flex-1">
                           <CardTitle className="text-base">
                             주문번호: {order.order_number}
                           </CardTitle>
@@ -74,6 +79,11 @@ export default async function OrdersPage() {
                               minute: '2-digit',
                             })}
                           </p>
+                          {order.store && (
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {order.store.name}
+                            </p>
+                          )}
                         </div>
                         <Badge variant={order.status === 'paid' ? 'default' : 'secondary'}>
                           {getOrderStatusLabel(order.status)}
