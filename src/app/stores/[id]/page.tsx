@@ -14,7 +14,7 @@ import { useGeolocation } from '@/contexts/GeolocationContext';
 import { useStoreQuery } from '@/hooks/use-stores-query';
 import { useStoreMenuQuery } from '@/hooks/use-store-menu-query';
 
-export default function StoreDetailPage() {
+function StoreDetailPageContent() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const storeIdParam = Array.isArray(params?.id) ? params?.id[0] : params?.id;
@@ -50,10 +50,8 @@ export default function StoreDetailPage() {
   const isLoading = isStoreLoading || (isMenuLoading && !storeMenus);
 
   return (
-    <ProtectedRoute>
-      <GeolocationProvider autoFetch={false}>
-        <div className="flex min-h-screen flex-col bg-white">
-        <StoreInfoHeader
+    <div className="flex min-h-screen flex-col bg-white">
+      <StoreInfoHeader
           onBackClick={() => router.back()}
           cartItemCount={cartItemCount}
           onCartClick={() => setIsCartOpen(true)}
@@ -125,12 +123,20 @@ export default function StoreDetailPage() {
           </main>
         )}
 
-        <CartSheet 
-          open={isCartOpen} 
-          onOpenChange={setIsCartOpen}
-          storeId={store?.id}
-        />
-        </div>
+      <CartSheet 
+        open={isCartOpen} 
+        onOpenChange={setIsCartOpen}
+        storeId={store?.id}
+      />
+    </div>
+  );
+}
+
+export default function StoreDetailPage() {
+  return (
+    <ProtectedRoute>
+      <GeolocationProvider autoFetch={false}>
+        <StoreDetailPageContent />
       </GeolocationProvider>
     </ProtectedRoute>
   );
