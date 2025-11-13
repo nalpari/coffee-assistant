@@ -46,6 +46,8 @@ export interface Order {
   totalAmount: number;          // 기존 컬럼명 사용
   discountAmount?: number;
   finalAmount: number;
+  storeId?: number;             // 매장 ID (선택적)
+  storeName?: string;           // 매장명 (JOIN 시, 선택적)
   status: OrderStatus;
   orderNotes?: string;
   customerName?: string;        // 기존 컬럼 (선택적)
@@ -65,6 +67,7 @@ export interface CreateOrderRequest {
   totalAmount: number;
   discountAmount?: number;
   finalAmount: number;
+  storeId?: number;             // 매장 ID (선택적)
   orderNotes?: string;
   customerName?: string;
   customerPhone?: string;

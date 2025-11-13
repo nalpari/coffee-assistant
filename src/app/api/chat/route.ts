@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
 
     const body: ChatRequest = await req.json();
-    const { message, cart } = body;
+    const { message, cart, selectedStore, userChoice } = body;
 
     // 3. 메시지 검증
     if (!message || typeof message !== 'string') {
@@ -49,6 +49,11 @@ export async function POST(req: NextRequest) {
       conversationManager.updateCart(userId, cart);
     }
 
+    // 매장 정보 업데이트 (NEW)
+    if (selectedStore !== undefined) {
+      conversationManager.updateSelectedStore(userId, selectedStore);
+    }
+
     // 자주 구매 제품 로드 (처음 한 번만)
     if (context.frequentProducts.length === 0) {
       const frequentProducts = await shoppingAgent.getUserFrequentProducts(userId);
@@ -63,6 +68,72 @@ export async function POST(req: NextRequest) {
       timestamp: new Date(),
     };
     conversationManager.addMessage(userId, userMessage);
+
+    // 사용자 선택 처리 (재주문 또는 새 매장 선택)
+    if (userChoice && userChoice.type === 'reorder' && userChoice.orderId) {
+      // 재주문 처리
+      const reorderResponse = await shoppingAgent.processReorder(userId, userChoice.orderId);
+
+      // AI 메시지 추가
+      const aiMessage: ChatMessage = {
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: reorderResponse.message,
+        timestamp: new Date(),
+      };
+      conversationManager.addMessage(userId, aiMessage);
+
+      // add_to_cart 액션으로 처리 (아래 로직 재사용)
+      const aiResponse = reorderResponse;
+      let updatedCart = context.cart;
+
+      if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
+        const productIds = aiResponse.products.map((p) => p.id);
+        const products = await shoppingAgent.getProductsByIds(productIds);
+        const selectedStoreId = context.selectedStore?.id;
+
+        for (const productAction of aiResponse.products) {
+          const product = products.find((p) => p.id === productAction.id);
+          if (product && product.stock >= productAction.quantity) {
+            const supabase = await createSupabaseServerClient();
+            const { data: menuData } = await supabase
+              .from('menu')
+              .select('id, discount_price, category_id, cold, hot, marketing, order_no')
+              .eq('id', parseInt(product.id))
+              .single();
+
+            updatedCart = conversationManager.addToCart(userId, {
+              id: parseInt(product.id),
+              name: product.name,
+              description: product.description || '',
+              price: product.price,
+              discountPrice: menuData?.discount_price || undefined,
+              image: product.image_url || null,
+              images: [],
+              category: product.category || '',
+              categoryId: menuData?.category_id || undefined,
+              tags: menuData?.marketing || [],
+              available: true,
+              popular: (menuData?.marketing || []).includes('E0202'),
+              cold: menuData?.cold || false,
+              hot: menuData?.hot || false,
+              orderNo: menuData?.order_no || 0,
+              quantity: productAction.quantity,
+              storeId: selectedStoreId,
+            });
+          }
+        }
+      }
+
+      updatedCart = await shoppingAgent.validateCartItems(updatedCart);
+      conversationManager.updateCart(userId, updatedCart);
+
+      return NextResponse.json({
+        message: aiResponse.message,
+        action: aiResponse.action,
+        cart: updatedCart,
+      });
+    }
 
     // AI 응답 생성
     const aiResponse = await shoppingAgent.processMessage(context, message);
@@ -80,13 +151,51 @@ export async function POST(req: NextRequest) {
     let updatedCart = context.cart;
     let orders: Order[] | undefined = undefined;
     let order: Order | undefined = undefined;
-    
+
     // 사용자 메시지에 "결제", "주문", "구매" 등의 단어가 포함되어 있는지 확인
     const hasCheckoutIntent = /결제|주문|구매/.test(message.toLowerCase());
 
     if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
+      // 중복 주문 감지 (NEW)
+      const cartItemsToAdd = aiResponse.products.map((p) => ({
+        id: parseInt(p.id),
+        name: '', // 임시값 (실제로는 product 조회 후 설정됨)
+        description: '',
+        price: 0,
+        discountPrice: undefined,
+        image: null,
+        images: [],
+        category: '',
+        tags: [],
+        available: true,
+        popular: false,
+        cold: false,
+        hot: false,
+        orderNo: 0,
+        quantity: p.quantity,
+      }));
+
+      const duplicateResult = await shoppingAgent.checkDuplicateAndPrepareOptions(
+        userId,
+        cartItemsToAdd
+      );
+
+      // 중복 발견 시 Dialog 표시
+      if (duplicateResult.isDuplicate) {
+        return NextResponse.json({
+          message: '같은 메뉴의 최근 주문이 있습니다. 어떻게 하시겠습니까?',
+          action: 'check_duplicate',
+          cart: updatedCart,
+          duplicateInfo: duplicateResult,
+        });
+      }
+
+      // 중복 없으면 기존 플로우 진행
       const productIds = aiResponse.products.map((p) => p.id);
       const products = await shoppingAgent.getProductsByIds(productIds);
+
+      // 선택된 매장 ID 추출
+      const selectedStoreId = context.selectedStore?.id;
 
       for (const productAction of aiResponse.products) {
         const product = products.find((p) => p.id === productAction.id);
@@ -124,6 +233,7 @@ export async function POST(req: NextRequest) {
             hot: menuData?.hot || false,
             orderNo: menuData?.order_no || 0,
             quantity: productAction.quantity,
+            storeId: selectedStoreId, // ✅ 선택된 매장 ID 설정
           });
         }
       }
@@ -151,14 +261,18 @@ export async function POST(req: NextRequest) {
           return sum + price * item.quantity;
         }, 0);
 
-        // 매장 ID 추출 (모든 아이템이 같은 매장인지 확인)
-        const storeIds = updatedCart
-          .map(item => item.storeId)
-          .filter((id): id is number => id !== undefined);
-        
-        // 모든 아이템이 같은 매장인지 확인
-        const uniqueStoreIds = [...new Set(storeIds)];
-        const storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+        // 매장 ID 추출 (우선순위: context.selectedStore > 장바구니 아이템)
+        let storeId = context.selectedStore?.id;
+
+        // 매장이 선택되지 않은 경우 장바구니 아이템에서 추출
+        if (!storeId) {
+          const storeIds = updatedCart
+            .map(item => item.storeId)
+            .filter((id): id is number => id !== undefined);
+
+          const uniqueStoreIds = [...new Set(storeIds)];
+          storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+        }
 
         // 주문 생성
         const orderResult = await createOrder({
@@ -263,14 +377,18 @@ export async function POST(req: NextRequest) {
         return sum + price * item.quantity;
       }, 0);
 
-      // 매장 ID 추출 (모든 아이템이 같은 매장인지 확인)
-      const storeIds = updatedCart
-        .map(item => item.storeId)
-        .filter((id): id is number => id !== undefined);
-      
-      // 모든 아이템이 같은 매장인지 확인
-      const uniqueStoreIds = [...new Set(storeIds)];
-      const storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+      // 매장 ID 추출 (우선순위: context.selectedStore > 장바구니 아이템)
+      let storeId = context.selectedStore?.id;
+
+      // 매장이 선택되지 않은 경우 장바구니 아이템에서 추출
+      if (!storeId) {
+        const storeIds = updatedCart
+          .map(item => item.storeId)
+          .filter((id): id is number => id !== undefined);
+
+        const uniqueStoreIds = [...new Set(storeIds)];
+        storeId = uniqueStoreIds.length === 1 ? uniqueStoreIds[0] : undefined;
+      }
 
       // 주문 생성
       const orderResult = await createOrder({

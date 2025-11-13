@@ -1,10 +1,12 @@
 import { create } from 'zustand';
 import type { MenuItemDisplay } from '@/types/menu';
 import type { CartItem } from '@/types/cart';
+import type { SelectedStore } from '@/types/store';
 
 interface CartStore {
   items: CartItem[];
-  storeId: number | null;  // 현재 선택된 매장 ID
+  storeId: number | null;  // 현재 선택된 매장 ID (하위 호환성 유지)
+  selectedStore: SelectedStore | null;  // 매장 상세 정보
 
   // 아이템 추가 (이미 있으면 수량 증가)
   addItem: (item: MenuItemDisplay, storeId?: number) => void;
@@ -21,8 +23,11 @@ interface CartStore {
   // 장바구니 전체 설정 (서버 동기화용)
   setItems: (items: CartItem[]) => void;
 
-  // 매장 ID 설정
+  // 매장 ID 설정 (하위 호환성 유지)
   setStoreId: (storeId: number | null) => void;
+
+  // 매장 상세 정보 설정 (신규)
+  setSelectedStore: (store: SelectedStore | null) => void;
 
   // 총 금액 계산 (할인가 우선 적용)
   getTotalPrice: () => number;
@@ -34,10 +39,11 @@ interface CartStore {
 export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   storeId: null,
+  selectedStore: null,
 
   addItem: (item, storeId) => {
     const { items, storeId: currentStoreId } = get();
-    
+
     // 매장 ID가 전달되면 저장, 기존 매장과 다르면 장바구니 초기화
     if (storeId !== undefined && storeId !== currentStoreId) {
       if (currentStoreId !== null && items.length > 0) {
@@ -46,7 +52,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
           '다른 매장의 상품이 장바구니에 있습니다. 장바구니를 비우고 새 매장의 상품을 담으시겠습니까?'
         );
         if (shouldClear) {
-          set({ items: [], storeId });
+          set({ items: [], storeId, selectedStore: null });
         } else {
           return; // 사용자가 취소하면 추가하지 않음
         }
@@ -85,7 +91,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   },
 
   clearCart: () => {
-    set({ items: [], storeId: null });
+    set({ items: [], storeId: null, selectedStore: null });
   },
 
   setItems: (items) => {
@@ -94,6 +100,13 @@ export const useCartStore = create<CartStore>((set, get) => ({
 
   setStoreId: (storeId) => {
     set({ storeId });
+  },
+
+  setSelectedStore: (store) => {
+    set({
+      selectedStore: store,
+      storeId: store?.id ?? null,
+    });
   },
 
   getTotalPrice: () => {

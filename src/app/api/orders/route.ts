@@ -33,7 +33,14 @@ export async function GET(req: NextRequest) {
 
     let query = supabaseAdmin
       .from('orders')
-      .select('*', { count: 'exact' })
+      .select(`
+        *,
+        stores:store_id (
+          id,
+          name,
+          address
+        )
+      `, { count: 'exact' })
       .order('created_at', { ascending: false });
 
     // user_id 필터링 (사용자별 주문만 조회)
@@ -70,6 +77,7 @@ export async function GET(req: NextRequest) {
       total_amount: number;
       final_amount: number;
       discount_amount: number;
+      store_id: number | null;
       status: string;
       order_notes: string | null;
       customer_name: string | null;
@@ -79,6 +87,11 @@ export async function GET(req: NextRequest) {
       updated_at: string;
       confirmed_at: string | null;
       completed_at: string | null;
+      stores: {
+        id: number;
+        name: string;
+        address: string;
+      } | null;
     }
 
     const orders: Order[] = (data || []).map((row: OrderRow) => ({
@@ -89,6 +102,8 @@ export async function GET(req: NextRequest) {
       totalAmount: row.total_amount || row.final_amount,
       discountAmount: row.discount_amount || undefined,
       finalAmount: row.final_amount,
+      storeId: row.store_id || undefined,
+      storeName: row.stores?.name || undefined,
       status: row.status as OrderStatus,
       orderNotes: row.order_notes || undefined,
       customerName: row.customer_name || undefined,
@@ -133,6 +148,7 @@ export async function POST(req: NextRequest) {
       totalAmount,
       discountAmount = 0,
       finalAmount,
+      storeId,
       orderNotes,
       customerName,
       customerPhone,
@@ -172,6 +188,7 @@ export async function POST(req: NextRequest) {
         total_amount: totalAmount,
         discount_amount: discountAmount,
         final_amount: finalAmount,
+        store_id: storeId,
         status: 'pending',
         order_notes: orderNotes,
         customer_name: customerName,
@@ -198,6 +215,7 @@ export async function POST(req: NextRequest) {
       totalAmount: data.total_amount,
       discountAmount: data.discount_amount,
       finalAmount: data.final_amount,
+      storeId: data.store_id,
       status: data.status,
       orderNotes: data.order_notes,
       customerName: data.customer_name,

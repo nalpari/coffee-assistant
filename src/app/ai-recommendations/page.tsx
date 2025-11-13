@@ -6,13 +6,15 @@ import { Sparkles, LogIn, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { ChatInput } from '@/components/chat/ChatInput';
+import { DuplicateOrderDialog } from '@/components/chat/DuplicateOrderDialog';
 import { AiRecommendationHeader } from '@/components/layout/AiRecommendationHeader';
 import { StoreSelectionCard } from '@/components/ai/StoreSelectionCard';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
+import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItemById } from '@/lib/api/menu';
-import type { ChatResponse } from '@/types/shopping-agent';
+import type { ChatResponse, DuplicateOrderInfo } from '@/types/shopping-agent';
 
 function formatTimestamp(date: Date): string {
   const hours = date.getHours();
@@ -39,6 +41,8 @@ export default function AIRecommendationsPage() {
     menuName: string;
     storeSelection: ChatResponse['storeSelection'];
   } | null>(null);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
+  const [duplicateInfo, setDuplicateInfo] = useState<DuplicateOrderInfo | null>(null);
 
   // 메시지 자동 스크롤
   useEffect(() => {
@@ -67,6 +71,9 @@ export default function AIRecommendationsPage() {
     setLoading(true);
 
     try {
+      // 현재 선택된 매장 정보 가져오기
+      const { selectedStore } = useCartStore.getState();
+
       // Shopping Agent API 호출
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -76,6 +83,7 @@ export default function AIRecommendationsPage() {
         body: JSON.stringify({
           message: content,
           cart: cartItems,
+          selectedStore,  // 매장 정보 전달 (NEW)
         }),
       });
 
@@ -95,6 +103,19 @@ export default function AIRecommendationsPage() {
       }
 
       const data: ChatResponse = await response.json();
+
+      // check_duplicate 액션 처리 (NEW)
+      if (data.action === 'check_duplicate' && data.duplicateInfo) {
+        setDuplicateInfo(data.duplicateInfo);
+        setShowDuplicateDialog(true);
+        // AI 응답 추가
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        setLoading(false);
+        return;
+      }
 
       // select_store 액션 처리
       if (data.action === 'select_store' && data.storeSelection && data.menuName) {
@@ -145,6 +166,102 @@ export default function AIRecommendationsPage() {
     }
   };
 
+  // 중복 주문 - 재주문 선택 핸들러 (NEW)
+  const handleReorder = async (orderId: number) => {
+    setShowDuplicateDialog(false);
+    setLoading(true);
+
+    try {
+      const { selectedStore } = useCartStore.getState();
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: '재주문할게요',
+          cart: cartItems,
+          selectedStore,
+          userChoice: {
+            type: 'reorder',
+            orderId,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('재주문 처리 중 오류가 발생했습니다.');
+      }
+
+      const data: ChatResponse = await response.json();
+
+      addMessage({
+        role: 'assistant',
+        content: data.message,
+      });
+
+      if (data.cart) {
+        const { setItems } = useCartStore.getState();
+        setItems(data.cart);
+      }
+    } catch (error) {
+      console.error('재주문 오류:', error);
+      addMessage({
+        role: 'assistant',
+        content: '재주문 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 중복 주문 - 새 매장 선택 핸들러 (NEW)
+  const handleNewStore = async (storeId: number) => {
+    setShowDuplicateDialog(false);
+    setLoading(true);
+
+    try {
+      const { selectedStore } = useCartStore.getState();
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: '새 매장에서 주문할게요',
+          cart: cartItems,
+          selectedStore,
+          userChoice: {
+            type: 'new_store',
+            storeId,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('매장 선택 처리 중 오류가 발생했습니다.');
+      }
+
+      const data: ChatResponse = await response.json();
+
+      addMessage({
+        role: 'assistant',
+        content: data.message,
+      });
+
+      if (data.cart) {
+        const { setItems } = useCartStore.getState();
+        setItems(data.cart);
+      }
+    } catch (error) {
+      console.error('새 매장 선택 오류:', error);
+      addMessage({
+        role: 'assistant',
+        content: '매장 선택 처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 매장 선택 핸들러
   const handleStoreSelect = async (storeId: number, menuId: number) => {
     if (!pendingStoreSelection) return;
@@ -159,10 +276,24 @@ export default function AIRecommendationsPage() {
         throw new Error('메뉴 정보를 불러올 수 없습니다.');
       }
 
+      // 매장 정보 조회 (NEW)
+      const { supabase } = await import('@/lib/supabase');
+      const { data: storeData, error: storeError } = await supabase
+        .from('stores')
+        .select('id, name, address, phone')
+        .eq('id', storeId)
+        .single();
+
+      if (storeError || !storeData) {
+        console.error('매장 정보 조회 실패:', storeError);
+        throw new Error('매장 정보를 불러올 수 없습니다.');
+      }
+
       // 장바구니에 추가
-      const { setItems, items } = useCartStore.getState();
+      const { setItems, items, setSelectedStore } = useCartStore.getState();
+      const { setStoreId: setCartStoreId2 } = useCart.getState();
       const existingItem = items.find(item => item.id === menuId && item.storeId === storeId);
-      
+
       if (existingItem) {
         // 이미 장바구니에 있으면 수량 증가
         setItems(
@@ -183,6 +314,15 @@ export default function AIRecommendationsPage() {
           },
         ]);
       }
+
+      // 매장 상세 정보 설정 (NEW)
+      setSelectedStore({
+        id: storeData.id,
+        name: storeData.name,
+        address: storeData.address,
+        phone: storeData.phone,
+      });
+      setCartStoreId2(storeId); // useCart의 storeId 설정 (CartSheet 동기화)
 
       // AI에게 매장 선택 완료 메시지 전송
       await handleSendMessage(`${pendingStoreSelection.menuName}을(를) 선택한 매장에서 주문하겠습니다.`);
@@ -272,6 +412,15 @@ export default function AIRecommendationsPage() {
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
+
+          {/* 중복 주문 확인 Dialog */}
+          <DuplicateOrderDialog
+            open={showDuplicateDialog}
+            duplicateInfo={duplicateInfo}
+            onSelectReorder={handleReorder}
+            onSelectNearbyStore={handleNewStore}
+            onCancel={() => setShowDuplicateDialog(false)}
+          />
 
           {/* 매장 선택 카드 */}
           {pendingStoreSelection && pendingStoreSelection.storeSelection && (

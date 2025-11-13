@@ -9,6 +9,7 @@ import type {
   UserPurchaseFrequency,
 } from '@/types/shopping-agent';
 import type { CartItem } from '@/types/cart';
+import type { SelectedStore } from '@/types/store';
 
 export class ConversationManager {
   private contexts: Map<string, ConversationContext>;
@@ -27,6 +28,7 @@ export class ConversationManager {
         conversationHistory: [],
         cart: [],
         frequentProducts: [],
+        selectedStore: null,  // 매장 정보 초기화
         lastActivity: new Date(),
       });
     }
@@ -128,6 +130,15 @@ export class ConversationManager {
   clearCart(userId: string): void {
     const context = this.getContext(userId);
     context.cart = [];
+    context.selectedStore = null;  // 매장 정보도 초기화
+  }
+
+  /**
+   * 매장 정보 업데이트
+   */
+  updateSelectedStore(userId: string, store: SelectedStore | null): void {
+    const context = this.getContext(userId);
+    context.selectedStore = store;
   }
 
   /**
@@ -176,6 +187,7 @@ export class ConversationManager {
       cartItemCount: context.cart.length,
       cartTotal: this.getCartTotal(userId),
       frequentProductsCount: context.frequentProducts.length,
+      selectedStore: context.selectedStore,  // 선택된 매장 정보
       lastActivity: context.lastActivity,
     };
   }
