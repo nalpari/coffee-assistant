@@ -13,6 +13,7 @@
 ## 🏗️ 프로젝트 아키텍처
 
 ### 기술 스택 요약
+
 - **Framework**: Next.js 16.0.0 (App Router)
 - **Language**: TypeScript 5 (strict mode)
 - **Styling**: Tailwind CSS v4 + shadcn/ui
@@ -21,6 +22,7 @@
 - **Package Manager**: pnpm
 
 ### 디렉토리 구조
+
 ```
 src/
 ├── app/                    # Next.js App Router
@@ -64,6 +66,7 @@ pnpm dlx shadcn@latest add card dialog badge input sheet
 ### 1.2 TypeScript 타입 정의 생성
 
 #### 📄 `src/types/menu.ts`
+
 ```typescript
 /**
  * 메뉴 카테고리 타입
@@ -71,16 +74,22 @@ pnpm dlx shadcn@latest add card dialog badge input sheet
  * 실제 DB: 1=COFFEE, 2=NON-COFFEE, 3=SIGNATURE, 4=SMOOTHIE & FRAPPE, 5=ADE & TEA, 6=COLD BREW
  */
 export type CategoryId = 1 | 2 | 3 | 4 | 5 | 6;
-export type CategoryName = 'COFFEE' | 'NON-COFFEE' | 'SIGNATURE' | 'SMOOTHIE & FRAPPE' | 'ADE & TEA' | 'COLD BREW';
+export type CategoryName =
+  | "COFFEE"
+  | "NON-COFFEE"
+  | "SIGNATURE"
+  | "SMOOTHIE & FRAPPE"
+  | "ADE & TEA"
+  | "COLD BREW";
 
 /**
  * 공통 엔티티 필드 (감사 추적용)
  */
 export interface BaseEntity {
-  createdBy: string;       // 생성자 (varchar(255))
-  createdDate: Date;       // 생성일시 (timestamp)
-  updatedBy?: string;      // 수정자 (varchar(255), nullable)
-  updatedDate?: Date;      // 수정일시 (timestamp, nullable)
+  createdBy: string; // 생성자 (varchar(255))
+  createdDate: Date; // 생성일시 (timestamp)
+  updatedBy?: string; // 수정자 (varchar(255), nullable)
+  updatedDate?: Date; // 수정일시 (timestamp, nullable)
 }
 
 /**
@@ -88,19 +97,19 @@ export interface BaseEntity {
  * DB 테이블: menu
  */
 export interface MenuItem extends BaseEntity {
-  id: number;              // 고유 식별자 (bigint, auto increment)
-  name: string;            // 메뉴 이름 (varchar(255))
-  description: string;     // 상세 설명 (varchar(500))
-  price: number;           // 기본 가격 (int4, 원 단위)
-  discountPrice?: number;  // 할인 가격 (int4, nullable)
-  cold: boolean;           // 차가운 음료 제공 여부
-  hot: boolean;            // 따뜻한 음료 제공 여부
-  categoryId?: number;     // 카테고리 FK (bigint, nullable)
-  status: string;          // 메뉴 상태 (common_code.id 참조, 예: 'E0101'=사용, 'E0102'=미사용)
-  marketing: string[];     // 마케팅 태그 (_text 배열, common_code.id 참조, 예: ['E0201', 'E0202'])
-  orderNo: number;         // 정렬 순서 (int4)
-  available?: boolean;     // 프론트엔드 전용: 재고 여부 (status에서 파생, E0101=true)
-  popular?: boolean;       // 프론트엔드 전용: 인기 메뉴 여부 (marketing에 'E0202' 포함 시 true)
+  id: number; // 고유 식별자 (bigint, auto increment)
+  name: string; // 메뉴 이름 (varchar(255))
+  description: string; // 상세 설명 (varchar(500))
+  price: number; // 기본 가격 (int4, 원 단위)
+  discountPrice?: number; // 할인 가격 (int4, nullable)
+  cold: boolean; // 차가운 음료 제공 여부
+  hot: boolean; // 따뜻한 음료 제공 여부
+  categoryId?: number; // 카테고리 FK (bigint, nullable)
+  status: string; // 메뉴 상태 (common_code.id 참조, 예: 'E0101'=사용, 'E0102'=미사용)
+  marketing: string[]; // 마케팅 태그 (_text 배열, common_code.id 참조, 예: ['E0201', 'E0202'])
+  orderNo: number; // 정렬 순서 (int4)
+  available?: boolean; // 프론트엔드 전용: 재고 여부 (status에서 파생, E0101=true)
+  popular?: boolean; // 프론트엔드 전용: 인기 메뉴 여부 (marketing에 'E0202' 포함 시 true)
 }
 
 /**
@@ -108,23 +117,24 @@ export interface MenuItem extends BaseEntity {
  * DB 테이블: category
  */
 export interface CategoryInfo extends BaseEntity {
-  id: number;              // 고유 식별자 (bigint, auto increment)
-  name: string;            // 카테고리 이름 (varchar(255), 예: 'COFFEE', 'NON-COFFEE', 'SIGNATURE')
-  orderNo: number;         // 정렬 순서 (int4)
-  status: string;          // 상태 (common_code.id 참조, 예: 'D0101'=사용, 'D0102'=미사용)
-  icon?: string;           // 프론트엔드 전용: 아이콘 이름 (lucide-react)
+  id: number; // 고유 식별자 (bigint, auto increment)
+  name: string; // 카테고리 이름 (varchar(255), 예: 'COFFEE', 'NON-COFFEE', 'SIGNATURE')
+  orderNo: number; // 정렬 순서 (int4)
+  status: string; // 상태 (common_code.id 참조, 예: 'D0101'=사용, 'D0102'=미사용)
+  icon?: string; // 프론트엔드 전용: 아이콘 이름 (lucide-react)
 }
 
 /**
  * 이미지 정보 인터페이스
  * DB 테이블: image
  */
-export interface MenuImage extends Pick<BaseEntity, 'createdBy' | 'createdDate'> {
-  fileUuid: string;        // 파일 UUID (varchar(255), PK)
-  fileName: string;        // 파일명 (varchar(255))
-  menuId: number;          // 메뉴 FK (bigint)
-  menuType: string;        // 메뉴 타입 구분자 (varchar(255))
-  ordering: number;        // 이미지 정렬 순서 (int4)
+export interface MenuImage
+  extends Pick<BaseEntity, "createdBy" | "createdDate"> {
+  fileUuid: string; // 파일 UUID (varchar(255), PK)
+  fileName: string; // 파일명 (varchar(255))
+  menuId: number; // 메뉴 FK (bigint)
+  menuType: string; // 메뉴 타입 구분자 (varchar(255))
+  ordering: number; // 이미지 정렬 순서 (int4)
 }
 
 /**
@@ -132,14 +142,14 @@ export interface MenuImage extends Pick<BaseEntity, 'createdBy' | 'createdDate'>
  * DB 테이블: common_code
  */
 export interface CommonCode extends BaseEntity {
-  id: string;              // 코드 ID (varchar(50), PK)
-  name: string;            // 코드 이름 (varchar(100))
-  value: string;           // 코드 값 (varchar(100), unique)
-  description?: string;    // 코드 설명 (text, nullable)
-  extraValue?: string;     // 추가 값 (text, nullable)
-  parentId?: string;       // 부모 코드 ID (varchar(50), nullable, self FK)
-  sortOrder: number;       // 정렬 순서 (int4, default 0)
-  delYn: string;           // 삭제 여부 (varchar(1), default 'N')
+  id: string; // 코드 ID (varchar(50), PK)
+  name: string; // 코드 이름 (varchar(100))
+  value: string; // 코드 값 (varchar(100), unique)
+  description?: string; // 코드 설명 (text, nullable)
+  extraValue?: string; // 추가 값 (text, nullable)
+  parentId?: string; // 부모 코드 ID (varchar(50), nullable, self FK)
+  sortOrder: number; // 정렬 순서 (int4, default 0)
+  delYn: string; // 삭제 여부 (varchar(1), default 'N')
 }
 
 /**
@@ -152,13 +162,13 @@ export interface MenuItemDisplay {
   description: string;
   price: number;
   discountPrice?: number;
-  image: string;           // 첫 번째 이미지 URL
-  images: MenuImage[];     // 전체 이미지 목록
-  category: string;        // 카테고리명 (조인 후)
+  image: string; // 첫 번째 이미지 URL
+  images: MenuImage[]; // 전체 이미지 목록
+  category: string; // 카테고리명 (조인 후)
   categoryId?: number;
-  tags: string[];          // 마케팅 태그 (common_code 조인 후 name 배열)
-  available: boolean;      // status 기반 계산
-  popular: boolean;        // marketing 배열에서 "인기" 태그 포함 여부
+  tags: string[]; // 마케팅 태그 (common_code 조인 후 name 배열)
+  available: boolean; // status 기반 계산
+  popular: boolean; // marketing 배열에서 "인기" 태그 포함 여부
   cold: boolean;
   hot: boolean;
   orderNo: number;
@@ -166,14 +176,15 @@ export interface MenuItemDisplay {
 ```
 
 #### 📄 `src/types/cart.ts`
+
 ```typescript
-import type { MenuItemDisplay } from './menu';
+import type { MenuItemDisplay } from "./menu";
 
 /**
  * 장바구니 아이템 (수량 포함)
  */
 export interface CartItem extends MenuItemDisplay {
-  quantity: number;        // 수량 (최소 1)
+  quantity: number; // 수량 (최소 1)
 }
 
 /**
@@ -181,17 +192,18 @@ export interface CartItem extends MenuItemDisplay {
  * 향후 DB 연동 시 order 테이블 생성 예정
  */
 export interface Order {
-  id: string;              // 주문 고유 ID (UUID)
-  items: CartItem[];       // 주문 아이템 목록
-  totalPrice: number;      // 총 금액
-  timestamp: Date;         // 주문 시간
-  status: 'pending' | 'confirmed' | 'completed';
+  id: string; // 주문 고유 ID (UUID)
+  items: CartItem[]; // 주문 아이템 목록
+  totalPrice: number; // 총 금액
+  timestamp: Date; // 주문 시간
+  status: "pending" | "confirmed" | "completed";
 }
 ```
 
 ### 1.3 Tailwind CSS 색상 테마 설정
 
 #### 📄 `src/app/globals.css` (추가)
+
 ```css
 @layer base {
   :root {
@@ -225,10 +237,11 @@ export interface Order {
 ### 1.4 Zustand 스토어 초기 구조
 
 #### 📄 `src/store/cart-store.ts`
+
 ```typescript
-import { create } from 'zustand';
-import type { MenuItemDisplay } from '@/types/menu';
-import type { CartItem } from '@/types/cart';
+import { create } from "zustand";
+import type { MenuItemDisplay } from "@/types/menu";
+import type { CartItem } from "@/types/cart";
 
 interface CartStore {
   items: CartItem[];
@@ -280,9 +293,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
       return;
     }
     set({
-      items: get().items.map((i) =>
-        i.id === id ? { ...i, quantity } : i
-      ),
+      items: get().items.map((i) => (i.id === id ? { ...i, quantity } : i)),
     });
   },
 
@@ -307,8 +318,9 @@ export const useCartStore = create<CartStore>((set, get) => ({
 ### 1.5 모크 데이터 생성
 
 #### 📄 `src/data/mock-menu.ts`
+
 ```typescript
-import type { MenuItemDisplay } from '@/types/menu';
+import type { MenuItemDisplay } from "@/types/menu";
 
 /**
  * 모크 메뉴 데이터
@@ -331,13 +343,13 @@ import type { MenuItemDisplay } from '@/types/menu';
 export const mockMenuItems: MenuItemDisplay[] = [
   {
     id: 87,
-    name: '아메리카노 HOT',
-    description: 'SPECIALTY로 즐기는 특별한 한잔!',
+    name: "아메리카노 HOT",
+    description: "SPECIALTY로 즐기는 특별한 한잔!",
     price: 1500,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500',
+    image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=500",
     images: [],
-    category: 'COFFEE',
+    category: "COFFEE",
     categoryId: 1,
     tags: [],
     available: true,
@@ -348,13 +360,13 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 88,
-    name: '아메리카노 ICE',
-    description: 'SPECIALTY로 즐기는 특별한 한잔!',
+    name: "아메리카노 ICE",
+    description: "SPECIALTY로 즐기는 특별한 한잔!",
     price: 2000,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500',
+    image: "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=500",
     images: [],
-    category: 'COFFEE',
+    category: "COFFEE",
     categoryId: 1,
     tags: [],
     available: true,
@@ -365,13 +377,13 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 92,
-    name: '카페라떼',
-    description: '원두선택 가능, HOT/ICE',
+    name: "카페라떼",
+    description: "원두선택 가능, HOT/ICE",
     price: 7200,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500',
+    image: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=500",
     images: [],
-    category: 'COFFEE',
+    category: "COFFEE",
     categoryId: 1,
     tags: [],
     available: true,
@@ -382,15 +394,15 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 120,
-    name: '흑임자크림라떼',
-    description: '고소하고 부드럽게, 힘이나 No.1 signature',
+    name: "흑임자크림라떼",
+    description: "고소하고 부드럽게, 힘이나 No.1 signature",
     price: 4200,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500',
+    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
     images: [],
-    category: 'SIGNATURE',
+    category: "SIGNATURE",
     categoryId: 3,
-    tags: ['Best'],
+    tags: ["Best"],
     available: true,
     popular: true,
     cold: true,
@@ -399,13 +411,13 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 129,
-    name: '밀크퐁프라페',
-    description: '퐁프라페 플레인',
+    name: "밀크퐁프라페",
+    description: "퐁프라페 플레인",
     price: 3900,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1533134486753-c833f0ed4866?w=500',
+    image: "https://images.unsplash.com/photo-1533134486753-c833f0ed4866?w=500",
     images: [],
-    category: 'SMOOTHIE & FRAPPE',
+    category: "SMOOTHIE & FRAPPE",
     categoryId: 4,
     tags: [],
     available: true,
@@ -416,13 +428,13 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 115,
-    name: '말차라떼',
-    description: 'HOT/ICE',
+    name: "말차라떼",
+    description: "HOT/ICE",
     price: 3200,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=500',
+    image: "https://images.unsplash.com/photo-1515823064-d6e0c04616a7?w=500",
     images: [],
-    category: 'NON-COFFEE',
+    category: "NON-COFFEE",
     categoryId: 2,
     tags: [],
     available: true,
@@ -433,15 +445,15 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 142,
-    name: '딸기요거트스무디',
-    description: '딸기요거트스무디',
+    name: "딸기요거트스무디",
+    description: "딸기요거트스무디",
     price: 4200,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=500',
+    image: "https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=500",
     images: [],
-    category: 'SMOOTHIE & FRAPPE',
+    category: "SMOOTHIE & FRAPPE",
     categoryId: 4,
-    tags: ['New'],
+    tags: ["New"],
     available: true,
     popular: false,
     cold: true,
@@ -450,13 +462,13 @@ export const mockMenuItems: MenuItemDisplay[] = [
   },
   {
     id: 161,
-    name: '콜드브루',
-    description: 'ICE only',
+    name: "콜드브루",
+    description: "ICE only",
     price: 3300,
     discountPrice: undefined,
-    image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500',
+    image: "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=500",
     images: [],
-    category: 'COLD BREW',
+    category: "COLD BREW",
     categoryId: 6,
     tags: [],
     available: true,
@@ -472,16 +484,17 @@ export const mockMenuItems: MenuItemDisplay[] = [
  * 실제 DB 데이터 기반
  */
 export const categories = [
-  { id: 1, name: 'COFFEE', icon: 'Coffee' },
-  { id: 2, name: 'NON-COFFEE', icon: 'Droplet' },
-  { id: 3, name: 'SIGNATURE', icon: 'Star' },
-  { id: 4, name: 'SMOOTHIE & FRAPPE', icon: 'IceCream' },
-  { id: 5, name: 'ADE & TEA', icon: 'Coffee' },
-  { id: 6, name: 'COLD BREW', icon: 'Coffee' },
+  { id: 1, name: "COFFEE", icon: "Coffee" },
+  { id: 2, name: "NON-COFFEE", icon: "Droplet" },
+  { id: 3, name: "SIGNATURE", icon: "Star" },
+  { id: 4, name: "SMOOTHIE & FRAPPE", icon: "IceCream" },
+  { id: 5, name: "ADE & TEA", icon: "Coffee" },
+  { id: 6, name: "COLD BREW", icon: "Coffee" },
 ];
 ```
 
 ### ✅ Phase 1 검증 기준
+
 - [ ] `pnpm dev` 실행 시 오류 없음
 - [ ] TypeScript 컴파일 에러 없음
 - [ ] `src/store/cart-store.ts`에서 Zustand 스토어 정상 동작
@@ -498,6 +511,7 @@ export const categories = [
 ### 2.1 컴포넌트 구조 설정
 
 필요한 컴포넌트 목록:
+
 - `Header` - 상단 고정 헤더 (검색창 포함)
 - `CategoryTabs` - 카테고리 필터 탭
 - `MenuGrid` - 메뉴 카드 그리드
@@ -507,11 +521,12 @@ export const categories = [
 ### 2.2 Header 컴포넌트
 
 #### 📄 `src/components/layout/Header.tsx`
-```typescript
-'use client';
 
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+```typescript
+"use client";
+
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface HeaderProps {
   searchQuery: string;
@@ -520,7 +535,7 @@ interface HeaderProps {
 
 export function Header({ searchQuery, onSearchChange }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="container flex h-16 items-center gap-4 px-4">
         {/* Logo */}
         <div className="flex items-center gap-2">
@@ -548,28 +563,32 @@ export function Header({ searchQuery, onSearchChange }: HeaderProps) {
 ### 2.3 CategoryTabs 컴포넌트
 
 #### 📄 `src/components/menu/CategoryTabs.tsx`
-```typescript
-'use client';
 
-import { Coffee, Droplet, Star, IceCream } from 'lucide-react';
+```typescript
+"use client";
+
+import { Coffee, Droplet, Star, IceCream } from "lucide-react";
 
 interface CategoryTabsProps {
-  selectedCategory: number | 'all';
-  onCategoryChange: (category: number | 'all') => void;
+  selectedCategory: number | "all";
+  onCategoryChange: (category: number | "all") => void;
 }
 
 // 실제 DB 카테고리 데이터 기반
 const categories = [
-  { id: 'all' as const, name: '전체', Icon: null },
-  { id: 1, name: 'COFFEE', Icon: Coffee },
-  { id: 2, name: 'NON-COFFEE', Icon: Droplet },
-  { id: 3, name: 'SIGNATURE', Icon: Star },
-  { id: 4, name: 'SMOOTHIE & FRAPPE', Icon: IceCream },
-  { id: 5, name: 'ADE & TEA', Icon: Coffee },
-  { id: 6, name: 'COLD BREW', Icon: Coffee },
+  { id: "all" as const, name: "전체", Icon: null },
+  { id: 1, name: "COFFEE", Icon: Coffee },
+  { id: 2, name: "NON-COFFEE", Icon: Droplet },
+  { id: 3, name: "SIGNATURE", Icon: Star },
+  { id: 4, name: "SMOOTHIE & FRAPPE", Icon: IceCream },
+  { id: 5, name: "ADE & TEA", Icon: Coffee },
+  { id: 6, name: "COLD BREW", Icon: Coffee },
 ];
 
-export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTabsProps) {
+export function CategoryTabs({
+  selectedCategory,
+  onCategoryChange,
+}: CategoryTabsProps) {
   return (
     <div className="sticky top-16 z-40 w-full border-b bg-background">
       <div className="container px-4 py-3">
@@ -583,9 +602,10 @@ export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTab
                 className={`
                   flex items-center gap-2 px-4 py-2 rounded-full
                   whitespace-nowrap transition-colors
-                  ${isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-card hover:bg-muted'
+                  ${
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card hover:bg-muted"
                   }
                 `}
               >
@@ -604,13 +624,14 @@ export function CategoryTabs({ selectedCategory, onCategoryChange }: CategoryTab
 ### 2.4 MenuCard 컴포넌트
 
 #### 📄 `src/components/menu/MenuCard.tsx`
-```typescript
-'use client';
 
-import Image from 'next/image';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import type { MenuItem } from '@/types/menu';
+```typescript
+"use client";
+
+import Image from "next/image";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import type { MenuItem } from "@/types/menu";
 
 interface MenuCardProps {
   item: MenuItem;
@@ -623,7 +644,7 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
       onClick={onClick}
       className={`
         cursor-pointer transition-all hover:shadow-lg
-        ${!item.available && 'opacity-50'}
+        ${!item.available && "opacity-50"}
       `}
     >
       <CardContent className="p-0">
@@ -642,7 +663,9 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
               <Badge className="bg-accent text-accent-foreground">인기</Badge>
             )}
             {item.tags.map((tag) => (
-              <Badge key={tag} variant="secondary">{tag}</Badge>
+              <Badge key={tag} variant="secondary">
+                {tag}
+              </Badge>
             ))}
           </div>
           {/* Out of Stock Overlay */}
@@ -660,7 +683,7 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
             {item.description}
           </p>
           <p className="text-primary font-bold text-xl">
-            {item.price.toLocaleString('ko-KR')}원
+            {item.price.toLocaleString("ko-KR")}원
           </p>
         </div>
       </CardContent>
@@ -672,11 +695,12 @@ export function MenuCard({ item, onClick }: MenuCardProps) {
 ### 2.5 MenuGrid 컴포넌트
 
 #### 📄 `src/components/menu/MenuGrid.tsx`
-```typescript
-'use client';
 
-import { MenuCard } from './MenuCard';
-import type { MenuItem } from '@/types/menu';
+```typescript
+"use client";
+
+import { MenuCard } from "./MenuCard";
+import type { MenuItem } from "@/types/menu";
 
 interface MenuGridProps {
   items: MenuItem[];
@@ -687,7 +711,9 @@ export function MenuGrid({ items, onItemClick }: MenuGridProps) {
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
-        <p className="text-muted-foreground text-lg">메뉴를 찾을 수 없습니다.</p>
+        <p className="text-muted-foreground text-lg">
+          메뉴를 찾을 수 없습니다.
+        </p>
       </div>
     );
   }
@@ -695,11 +721,7 @@ export function MenuGrid({ items, onItemClick }: MenuGridProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
       {items.map((item) => (
-        <MenuCard
-          key={item.id}
-          item={item}
-          onClick={() => onItemClick(item)}
-        />
+        <MenuCard key={item.id} item={item} onClick={() => onItemClick(item)} />
       ))}
     </div>
   );
@@ -709,12 +731,13 @@ export function MenuGrid({ items, onItemClick }: MenuGridProps) {
 ### 2.6 CartButton 컴포넌트 (플로팅)
 
 #### 📄 `src/components/cart/CartButton.tsx`
-```typescript
-'use client';
 
-import { ShoppingCart } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+```typescript
+"use client";
+
+import { ShoppingCart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 interface CartButtonProps {
   itemCount: number;
@@ -751,43 +774,46 @@ export function CartButton({ itemCount, onClick }: CartButtonProps) {
 ### 2.7 메인 페이지 통합
 
 #### 📄 `src/app/page.tsx` (기본 구조)
-```typescript
-'use client';
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/Header';
-import { CategoryTabs } from '@/components/menu/CategoryTabs';
-import { MenuGrid } from '@/components/menu/MenuGrid';
-import { CartButton } from '@/components/cart/CartButton';
-import { useCartStore } from '@/store/cart-store';
-import { mockMenuItems } from '@/data/mock-menu';
-import type { Category } from '@/types/menu';
+```typescript
+"use client";
+
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
+import { CategoryTabs } from "@/components/menu/CategoryTabs";
+import { MenuGrid } from "@/components/menu/MenuGrid";
+import { CartButton } from "@/components/cart/CartButton";
+import { useCartStore } from "@/store/cart-store";
+import { mockMenuItems } from "@/data/mock-menu";
+import type { Category } from "@/types/menu";
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">(
+    "all"
+  );
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   const { getTotalItems } = useCartStore();
 
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
   const handleItemClick = (item: MenuItem) => {
     // Phase 3에서 모달 열기 구현
-    console.log('Clicked item:', item);
+    console.log("Clicked item:", item);
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <CategoryTabs
         selectedCategory={selectedCategory}
@@ -795,10 +821,7 @@ export default function HomePage() {
       />
 
       <main className="container mx-auto pb-24">
-        <MenuGrid
-          items={filteredItems}
-          onItemClick={handleItemClick}
-        />
+        <MenuGrid items={filteredItems} onItemClick={handleItemClick} />
       </main>
 
       <CartButton
@@ -811,6 +834,7 @@ export default function HomePage() {
 ```
 
 ### ✅ Phase 2 검증 기준
+
 - [ ] 헤더가 상단에 고정되고 스크롤 시에도 유지됨
 - [ ] 검색창에 입력 시 메뉴 필터링 동작
 - [ ] 카테고리 탭 클릭 시 해당 카테고리만 표시
@@ -830,22 +854,23 @@ export default function HomePage() {
 ### 3.1 메뉴 상세 모달 컴포넌트
 
 #### 📄 `src/components/menu/MenuDetailModal.tsx`
-```typescript
-'use client';
 
-import { useState } from 'react';
-import Image from 'next/image';
-import { Minus, Plus } from 'lucide-react';
+```typescript
+"use client";
+
+import { useState } from "react";
+import Image from "next/image";
+import { Minus, Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useCartStore } from '@/store/cart-store';
-import type { MenuItem } from '@/types/menu';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useCartStore } from "@/store/cart-store";
+import type { MenuItem } from "@/types/menu";
 
 interface MenuDetailModalProps {
   item: MenuItem | null;
@@ -853,7 +878,11 @@ interface MenuDetailModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
-export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalProps) {
+export function MenuDetailModal({
+  item,
+  open,
+  onOpenChange,
+}: MenuDetailModalProps) {
   const [quantity, setQuantity] = useState(1);
   const { addItem } = useCartStore();
 
@@ -893,7 +922,9 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
                 <Badge className="bg-accent text-accent-foreground">인기</Badge>
               )}
               {item.tags.map((tag) => (
-                <Badge key={tag} variant="secondary">{tag}</Badge>
+                <Badge key={tag} variant="secondary">
+                  {tag}
+                </Badge>
               ))}
             </div>
 
@@ -902,7 +933,7 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
 
             {/* Price */}
             <div className="text-3xl font-bold text-primary">
-              {item.price.toLocaleString('ko-KR')}원
+              {item.price.toLocaleString("ko-KR")}원
             </div>
 
             {/* Quantity Control */}
@@ -917,7 +948,9 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="w-12 text-center font-bold text-lg">{quantity}</span>
+                <span className="w-12 text-center font-bold text-lg">
+                  {quantity}
+                </span>
                 <Button
                   size="icon"
                   variant="outline"
@@ -932,7 +965,7 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
             <div className="flex justify-between items-center p-4 bg-card rounded-lg">
               <span className="font-medium">합계</span>
               <span className="text-2xl font-bold text-primary">
-                {(item.price * quantity).toLocaleString('ko-KR')}원
+                {(item.price * quantity).toLocaleString("ko-KR")}원
               </span>
             </div>
 
@@ -943,7 +976,7 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
               onClick={handleAddToCart}
               disabled={!item.available}
             >
-              {item.available ? '장바구니에 담기' : '품절'}
+              {item.available ? "장바구니에 담기" : "품절"}
             </Button>
           </div>
         </div>
@@ -956,18 +989,19 @@ export function MenuDetailModal({ item, open, onOpenChange }: MenuDetailModalPro
 ### 3.2 장바구니 사이드바 컴포넌트
 
 #### 📄 `src/components/cart/CartSheet.tsx`
-```typescript
-'use client';
 
-import { Minus, Plus, Trash2 } from 'lucide-react';
+```typescript
+"use client";
+
+import { Minus, Plus, Trash2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { useCartStore } from '@/store/cart-store';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { useCartStore } from "@/store/cart-store";
 
 interface CartSheetProps {
   open: boolean;
@@ -999,12 +1033,15 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 bg-card rounded-lg">
+                <div
+                  key={item.id}
+                  className="flex gap-4 p-4 bg-card rounded-lg"
+                >
                   {/* Item Info */}
                   <div className="flex-1">
                     <h4 className="font-bold">{item.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {item.price.toLocaleString('ko-KR')}원
+                      {item.price.toLocaleString("ko-KR")}원
                     </p>
                   </div>
 
@@ -1018,7 +1055,9 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <span className="w-8 text-center font-medium">
+                      {item.quantity}
+                    </span>
                     <Button
                       size="icon"
                       variant="outline"
@@ -1051,16 +1090,12 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
             <div className="flex justify-between items-center text-xl font-bold">
               <span>총 금액</span>
               <span className="text-primary">
-                {getTotalPrice().toLocaleString('ko-KR')}원
+                {getTotalPrice().toLocaleString("ko-KR")}원
               </span>
             </div>
 
             {/* Checkout Button */}
-            <Button
-              size="lg"
-              className="w-full"
-              onClick={handleCheckout}
-            >
+            <Button size="lg" className="w-full" onClick={handleCheckout}>
               주문하기
             </Button>
           </div>
@@ -1074,23 +1109,26 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
 ### 3.3 메인 페이지 통합 (업데이트)
 
 #### 📄 `src/app/page.tsx` (Phase 3 완성)
-```typescript
-'use client';
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/Header';
-import { CategoryTabs } from '@/components/menu/CategoryTabs';
-import { MenuGrid } from '@/components/menu/MenuGrid';
-import { MenuDetailModal } from '@/components/menu/MenuDetailModal';
-import { CartButton } from '@/components/cart/CartButton';
-import { CartSheet } from '@/components/cart/CartSheet';
-import { useCartStore } from '@/store/cart-store';
-import { mockMenuItems } from '@/data/mock-menu';
-import type { Category, MenuItem } from '@/types/menu';
+```typescript
+"use client";
+
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
+import { CategoryTabs } from "@/components/menu/CategoryTabs";
+import { MenuGrid } from "@/components/menu/MenuGrid";
+import { MenuDetailModal } from "@/components/menu/MenuDetailModal";
+import { CartButton } from "@/components/cart/CartButton";
+import { CartSheet } from "@/components/cart/CartSheet";
+import { useCartStore } from "@/store/cart-store";
+import { mockMenuItems } from "@/data/mock-menu";
+import type { Category, MenuItem } from "@/types/menu";
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">(
+    "all"
+  );
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -1099,8 +1137,11 @@ export default function HomePage() {
 
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1111,15 +1152,12 @@ export default function HomePage() {
 
   const handleCheckout = () => {
     // Phase 4에서 주문 플로우 구현
-    console.log('Checkout initiated');
+    console.log("Checkout initiated");
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <CategoryTabs
         selectedCategory={selectedCategory}
@@ -1127,10 +1165,7 @@ export default function HomePage() {
       />
 
       <main className="container mx-auto pb-24">
-        <MenuGrid
-          items={filteredItems}
-          onItemClick={handleItemClick}
-        />
+        <MenuGrid items={filteredItems} onItemClick={handleItemClick} />
       </main>
 
       {/* Modals */}
@@ -1157,6 +1192,7 @@ export default function HomePage() {
 ```
 
 ### ✅ Phase 3 검증 기준
+
 - [ ] 메뉴 카드 클릭 시 상세 모달 열림
 - [ ] 모달에서 수량 증감 버튼 동작
 - [ ] "장바구니에 담기" 버튼 클릭 시 아이템 추가
@@ -1175,19 +1211,23 @@ export default function HomePage() {
 ### 4.1 스와이프 버튼 컴포넌트
 
 #### 📄 `src/components/order/SwipeToOrderButton.tsx`
-```typescript
-'use client';
 
-import { useState } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
-import { ChevronRight, Check } from 'lucide-react';
+```typescript
+"use client";
+
+import { useState } from "react";
+import { motion, useMotionValue, useTransform, PanInfo } from "framer-motion";
+import { ChevronRight, Check } from "lucide-react";
 
 interface SwipeToOrderButtonProps {
   onSwipeComplete: () => void;
   disabled?: boolean;
 }
 
-export function SwipeToOrderButton({ onSwipeComplete, disabled = false }: SwipeToOrderButtonProps) {
+export function SwipeToOrderButton({
+  onSwipeComplete,
+  disabled = false,
+}: SwipeToOrderButtonProps) {
   const [isCompleted, setIsCompleted] = useState(false);
   const x = useMotionValue(0);
 
@@ -1198,10 +1238,13 @@ export function SwipeToOrderButton({ onSwipeComplete, disabled = false }: SwipeT
   const backgroundColor = useTransform(
     x,
     [0, SWIPE_THRESHOLD],
-    ['hsl(var(--primary))', 'hsl(var(--accent))']
+    ["hsl(var(--primary))", "hsl(var(--accent))"]
   );
 
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleDragEnd = (
+    event: MouseEvent | TouchEvent | PointerEvent,
+    info: PanInfo
+  ) => {
     if (info.offset.x > SWIPE_THRESHOLD) {
       // 스와이프 완료
       setIsCompleted(true);
@@ -1216,7 +1259,9 @@ export function SwipeToOrderButton({ onSwipeComplete, disabled = false }: SwipeT
   if (disabled) {
     return (
       <div className="w-full h-16 bg-muted rounded-full flex items-center justify-center">
-        <span className="text-muted-foreground font-medium">장바구니가 비어있습니다</span>
+        <span className="text-muted-foreground font-medium">
+          장바구니가 비어있습니다
+        </span>
       </div>
     );
   }
@@ -1232,7 +1277,7 @@ export function SwipeToOrderButton({ onSwipeComplete, disabled = false }: SwipeT
       {/* Text */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <span className="text-white font-bold text-lg">
-          {isCompleted ? '주문 완료!' : '스와이프하여 주문하기'}
+          {isCompleted ? "주문 완료!" : "스와이프하여 주문하기"}
         </span>
       </div>
 
@@ -1260,17 +1305,15 @@ export function SwipeToOrderButton({ onSwipeComplete, disabled = false }: SwipeT
 ### 4.2 주문 확인 모달 컴포넌트
 
 #### 📄 `src/components/order/OrderConfirmationModal.tsx`
-```typescript
-'use client';
 
-import { useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { CheckCircle2 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+```typescript
+"use client";
+
+import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { CheckCircle2 } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface OrderConfirmationModalProps {
   open: boolean;
@@ -1281,7 +1324,7 @@ interface OrderConfirmationModalProps {
 export function OrderConfirmationModal({
   open,
   onOpenChange,
-  totalPrice
+  totalPrice,
 }: OrderConfirmationModalProps) {
   useEffect(() => {
     if (open) {
@@ -1302,9 +1345,9 @@ export function OrderConfirmationModal({
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{
-              type: 'spring',
+              type: "spring",
               stiffness: 260,
-              damping: 20
+              damping: 20,
             }}
           >
             <CheckCircle2 className="h-24 w-24 text-green-600" />
@@ -1319,15 +1362,12 @@ export function OrderConfirmationModal({
           >
             <h2 className="text-2xl font-bold mb-2">주문이 완료되었습니다!</h2>
             <p className="text-muted-foreground">
-              총 {totalPrice.toLocaleString('ko-KR')}원
+              총 {totalPrice.toLocaleString("ko-KR")}원
             </p>
           </motion.div>
 
           {/* Close Button */}
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             닫기
           </Button>
         </div>
@@ -1340,19 +1380,20 @@ export function OrderConfirmationModal({
 ### 4.3 장바구니 사이드바 업데이트 (스와이프 버튼 추가)
 
 #### 📄 `src/components/cart/CartSheet.tsx` (업데이트)
-```typescript
-'use client';
 
-import { Minus, Plus, Trash2 } from 'lucide-react';
+```typescript
+"use client";
+
+import { Minus, Plus, Trash2 } from "lucide-react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Button } from '@/components/ui/button';
-import { SwipeToOrderButton } from '@/components/order/SwipeToOrderButton';
-import { useCartStore } from '@/store/cart-store';
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { SwipeToOrderButton } from "@/components/order/SwipeToOrderButton";
+import { useCartStore } from "@/store/cart-store";
 
 interface CartSheetProps {
   open: boolean;
@@ -1384,12 +1425,15 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
           ) : (
             <div className="space-y-4">
               {items.map((item) => (
-                <div key={item.id} className="flex gap-4 p-4 bg-card rounded-lg">
+                <div
+                  key={item.id}
+                  className="flex gap-4 p-4 bg-card rounded-lg"
+                >
                   {/* Item Info */}
                   <div className="flex-1">
                     <h4 className="font-bold">{item.name}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {item.price.toLocaleString('ko-KR')}원
+                      {item.price.toLocaleString("ko-KR")}원
                     </p>
                   </div>
 
@@ -1403,7 +1447,9 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
                     >
                       <Minus className="h-3 w-3" />
                     </Button>
-                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <span className="w-8 text-center font-medium">
+                      {item.quantity}
+                    </span>
                     <Button
                       size="icon"
                       variant="outline"
@@ -1435,7 +1481,7 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
           <div className="flex justify-between items-center text-xl font-bold">
             <span>총 금액</span>
             <span className="text-primary">
-              {getTotalPrice().toLocaleString('ko-KR')}원
+              {getTotalPrice().toLocaleString("ko-KR")}원
             </span>
           </div>
 
@@ -1454,24 +1500,27 @@ export function CartSheet({ open, onOpenChange, onCheckout }: CartSheetProps) {
 ### 4.4 메인 페이지 최종 통합 (Phase 4 완성)
 
 #### 📄 `src/app/page.tsx` (Phase 4 완성)
-```typescript
-'use client';
 
-import { useState } from 'react';
-import { Header } from '@/components/layout/Header';
-import { CategoryTabs } from '@/components/menu/CategoryTabs';
-import { MenuGrid } from '@/components/menu/MenuGrid';
-import { MenuDetailModal } from '@/components/menu/MenuDetailModal';
-import { CartButton } from '@/components/cart/CartButton';
-import { CartSheet } from '@/components/cart/CartSheet';
-import { OrderConfirmationModal } from '@/components/order/OrderConfirmationModal';
-import { useCartStore } from '@/store/cart-store';
-import { mockMenuItems } from '@/data/mock-menu';
-import type { Category, MenuItem } from '@/types/menu';
+```typescript
+"use client";
+
+import { useState } from "react";
+import { Header } from "@/components/layout/Header";
+import { CategoryTabs } from "@/components/menu/CategoryTabs";
+import { MenuGrid } from "@/components/menu/MenuGrid";
+import { MenuDetailModal } from "@/components/menu/MenuDetailModal";
+import { CartButton } from "@/components/cart/CartButton";
+import { CartSheet } from "@/components/cart/CartSheet";
+import { OrderConfirmationModal } from "@/components/order/OrderConfirmationModal";
+import { useCartStore } from "@/store/cart-store";
+import { mockMenuItems } from "@/data/mock-menu";
+import type { Category, MenuItem } from "@/types/menu";
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<number | 'all'>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<number | "all">(
+    "all"
+  );
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -1481,8 +1530,11 @@ export default function HomePage() {
 
   // 필터링된 메뉴 아이템
   const filteredItems = mockMenuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.categoryId === selectedCategory;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.categoryId === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1504,15 +1556,12 @@ export default function HomePage() {
     setIsCartOpen(false);
 
     // 실제로는 여기서 백엔드 API 호출
-    console.log('Order placed:', { totalPrice });
+    console.log("Order placed:", { totalPrice });
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <Header searchQuery={searchQuery} onSearchChange={setSearchQuery} />
 
       <CategoryTabs
         selectedCategory={selectedCategory}
@@ -1520,10 +1569,7 @@ export default function HomePage() {
       />
 
       <main className="container mx-auto pb-24">
-        <MenuGrid
-          items={filteredItems}
-          onItemClick={handleItemClick}
-        />
+        <MenuGrid items={filteredItems} onItemClick={handleItemClick} />
       </main>
 
       {/* Modals */}
@@ -1556,6 +1602,7 @@ export default function HomePage() {
 ```
 
 ### ✅ Phase 4 검증 기준
+
 - [ ] 스와이프 버튼이 부드럽게 동작
 - [ ] 임계값(70%) 도달 시 주문 완료 처리
 - [ ] 임계값 미달 시 자동으로 원위치
@@ -1574,6 +1621,7 @@ export default function HomePage() {
 ### 5.1 이미지 최적화
 
 #### 이미지 컴포넌트 최적화 적용
+
 - `next/image`의 `priority` 속성 사용 (첫 화면 이미지)
 - `loading="lazy"` 자동 적용 (하단 이미지)
 - `sizes` 속성으로 반응형 이미지 최적화
@@ -1593,8 +1641,9 @@ export default function HomePage() {
 ### 5.2 검색 디바운싱
 
 #### 📄 `src/hooks/useDebounce.ts` (생성)
+
 ```typescript
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useDebounce<T>(value: T, delay: number = 300): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -1614,23 +1663,27 @@ export function useDebounce<T>(value: T, delay: number = 300): T {
 ```
 
 #### 📄 `src/app/page.tsx` (검색 디바운싱 적용)
-```typescript
-'use client';
 
-import { useState } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
+```typescript
+"use client";
+
+import { useState } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 // ... 기타 imports
 
 export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // ... 기타 상태
 
   // 디바운싱된 검색어 사용
   const filteredItems = mockMenuItems.filter((item) => {
-    const matchesSearch = item.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase());
-    const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    const matchesSearch = item.name
+      .toLowerCase()
+      .includes(debouncedSearchQuery.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "all" || item.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -1641,6 +1694,7 @@ export default function HomePage() {
 ### 5.3 접근성 개선
 
 #### ARIA 레이블 추가
+
 ```typescript
 // CartButton.tsx
 <Button
@@ -1670,6 +1724,7 @@ export default function HomePage() {
 ```
 
 #### 포커스 스타일 개선
+
 ```css
 /* globals.css에 추가 */
 @layer base {
@@ -1684,17 +1739,20 @@ export default function HomePage() {
 ### 5.4 성능 최적화 체크리스트
 
 #### Next.js 최적화
+
 - [ ] Server Components 활용 (정적 콘텐츠)
 - [ ] Client Components 최소화 (`'use client'` 필요한 곳만)
 - [ ] Dynamic imports for heavy components
 - [ ] Metadata API 사용 (SEO)
 
 #### React 최적화
+
 - [ ] `useMemo`로 필터링 로직 메모이제이션
 - [ ] `useCallback`으로 핸들러 함수 최적화
 - [ ] React Compiler 자동 최적화 활성화 (Next.js 설정)
 
 #### Lighthouse 테스트
+
 ```bash
 # 프로덕션 빌드 후 테스트
 pnpm build
@@ -1707,11 +1765,13 @@ pnpm start
 ### 5.5 반응형 레이아웃 최종 검증
 
 #### 테스트 해상도
+
 - **모바일**: 375px (iPhone SE), 390px (iPhone 12)
 - **태블릿**: 768px (iPad Mini), 1024px (iPad Pro)
 - **데스크톱**: 1280px, 1920px
 
 #### 반응형 체크리스트
+
 - [ ] 헤더 검색창 모바일에서 축소
 - [ ] 카테고리 탭 가로 스크롤 (모바일)
 - [ ] 메뉴 그리드 2열/3열/4열 정상 동작
@@ -1722,18 +1782,21 @@ pnpm start
 ### 5.6 브라우저 호환성 테스트
 
 #### 지원 브라우저
+
 - Chrome 100+ (주요 타겟)
 - Safari 15+ (iOS)
 - Edge 100+
 - Firefox 100+
 
 #### 테스트 항목
+
 - [ ] Framer Motion 애니메이션 정상 동작
 - [ ] CSS Grid 레이아웃 정상 표시
 - [ ] Touch 제스처 동작 (모바일)
 - [ ] Dialog/Sheet 컴포넌트 정상 작동
 
 ### ✅ Phase 5 검증 기준
+
 - [ ] 모든 이미지 Next.js Image 컴포넌트 사용
 - [ ] 검색 디바운싱 적용 (300ms)
 - [ ] 반응형 레이아웃 완벽 동작 (3개 해상도 테스트)
@@ -1747,40 +1810,43 @@ pnpm start
 ## 📚 부록 A: 데이터 모델 상세
 
 ### 데이터베이스 스키마 참고
+
 실제 데이터베이스 스키마는 `docs/ddl.md` 참고
 
 ### MenuItem 타입 (DB 연동 전)
+
 ```typescript
 interface MenuItem extends BaseEntity {
-  id: number;              // bigint (auto increment)
-  name: string;            // varchar(255)
-  description: string;     // varchar(500)
-  price: number;           // int4 (원 단위, 양수)
-  discountPrice?: number;  // int4 (원 단위, nullable)
-  cold: boolean;           // 차가운 음료 제공 여부
-  hot: boolean;            // 따뜻한 음료 제공 여부
-  categoryId?: number;     // bigint (FK to category)
-  status: string;          // varchar(255) (common_code.id 참조)
-  marketing: string[];     // _text 배열 (common_code.id 참조)
-  orderNo: number;         // int4 (정렬 순서)
+  id: number; // bigint (auto increment)
+  name: string; // varchar(255)
+  description: string; // varchar(500)
+  price: number; // int4 (원 단위, 양수)
+  discountPrice?: number; // int4 (원 단위, nullable)
+  cold: boolean; // 차가운 음료 제공 여부
+  hot: boolean; // 따뜻한 음료 제공 여부
+  categoryId?: number; // bigint (FK to category)
+  status: string; // varchar(255) (common_code.id 참조)
+  marketing: string[]; // _text 배열 (common_code.id 참조)
+  orderNo: number; // int4 (정렬 순서)
 }
 ```
 
 ### MenuItemDisplay 타입 (프론트엔드 전용)
+
 ```typescript
 interface MenuItemDisplay {
   id: number;
-  name: string;            // 최대 255자
-  description: string;     // 최대 500자
-  price: number;           // 원 단위
-  discountPrice?: number;  // 할인가 (있는 경우)
-  image: string;           // 첫 번째 이미지 URL
-  images: MenuImage[];     // 전체 이미지 목록
-  category: string;        // 카테고리명 (조인 후)
+  name: string; // 최대 255자
+  description: string; // 최대 500자
+  price: number; // 원 단위
+  discountPrice?: number; // 할인가 (있는 경우)
+  image: string; // 첫 번째 이미지 URL
+  images: MenuImage[]; // 전체 이미지 목록
+  category: string; // 카테고리명 (조인 후)
   categoryId?: number;
-  tags: string[];          // 마케팅 태그 (최대 5개 권장)
-  available: boolean;      // status 기반 계산
-  popular: boolean;        // marketing 배열에서 파생
+  tags: string[]; // 마케팅 태그 (최대 5개 권장)
+  available: boolean; // status 기반 계산
+  popular: boolean; // marketing 배열에서 파생
   cold: boolean;
   hot: boolean;
   orderNo: number;
@@ -1788,32 +1854,35 @@ interface MenuItemDisplay {
 ```
 
 ### CartItem 타입
+
 ```typescript
 interface CartItem extends MenuItemDisplay {
-  quantity: number;        // 최소 1, 최대 99 권장
+  quantity: number; // 최소 1, 최대 99 권장
 }
 ```
 
 ### Order 타입 (향후 DB 연동)
+
 ```typescript
 interface Order {
-  id: string;              // UUID
-  items: CartItem[];       // 최소 1개
-  totalPrice: number;      // items의 합계 (할인가 우선)
-  timestamp: Date;         // 주문 생성 시간
-  status: 'pending' | 'confirmed' | 'completed';
+  id: string; // UUID
+  items: CartItem[]; // 최소 1개
+  totalPrice: number; // items의 합계 (할인가 우선)
+  timestamp: Date; // 주문 생성 시간
+  status: "pending" | "confirmed" | "completed";
 }
 ```
 
 ### 공통코드 구조 (계층형)
+
 ```typescript
 interface CommonCode extends BaseEntity {
-  id: string;              // varchar(50) (예: "E0101")
-  name: string;            // varchar(100) (예: "사용")
-  value: string;           // varchar(100) (unique, 예: "MENU_ACTIVE")
-  parentId?: string;       // varchar(50) (self FK, 예: "E01")
-  sortOrder: number;       // int4 (정렬)
-  delYn: string;           // varchar(1) ('Y' | 'N')
+  id: string; // varchar(50) (예: "E0101")
+  name: string; // varchar(100) (예: "사용")
+  value: string; // varchar(100) (unique, 예: "MENU_ACTIVE")
+  parentId?: string; // varchar(50) (self FK, 예: "E01")
+  sortOrder: number; // int4 (정렬)
+  delYn: string; // varchar(1) ('Y' | 'N')
 }
 
 // 실제 DB 공통코드 예시
@@ -1836,19 +1905,31 @@ interface CommonCode extends BaseEntity {
 ## 📚 부록 B: shadcn/ui 컴포넌트 설치 가이드
 
 ### 설치된 컴포넌트 목록
+
 ```bash
 # Phase 1에서 설치
 pnpm dlx shadcn@latest add button card dialog badge input sheet
 ```
 
 ### 사용 예시
+
 ```typescript
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 ```
 
 ---
@@ -1856,6 +1937,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 ## 📚 부록 C: Zustand 스토어 구조
 
 ### CartStore 인터페이스
+
 ```typescript
 interface CartStore {
   items: CartItem[];
@@ -1869,8 +1951,9 @@ interface CartStore {
 ```
 
 ### 사용 예시
+
 ```typescript
-import { useCartStore } from '@/store/cart-store';
+import { useCartStore } from "@/store/cart-store";
 
 function MyComponent() {
   const { items, addItem, getTotalPrice } = useCartStore();
@@ -1878,9 +1961,7 @@ function MyComponent() {
   return (
     <div>
       <p>총 금액: {getTotalPrice()}원</p>
-      <button onClick={() => addItem(menuItem)}>
-        장바구니에 담기
-      </button>
+      <button onClick={() => addItem(menuItem)}>장바구니에 담기</button>
     </div>
   );
 }
@@ -1891,8 +1972,9 @@ function MyComponent() {
 ## 📚 부록 D: Framer Motion 애니메이션 패턴
 
 ### 스와이프 제스처
+
 ```typescript
-import { motion, useMotionValue } from 'framer-motion';
+import { motion, useMotionValue } from "framer-motion";
 
 const x = useMotionValue(0);
 
@@ -1907,10 +1989,11 @@ const x = useMotionValue(0);
       x.set(0); // 원위치
     }
   }}
-/>
+/>;
 ```
 
 ### 모달 애니메이션
+
 ```typescript
 <motion.div
   initial={{ opacity: 0, scale: 0.9 }}
@@ -1923,14 +2006,15 @@ const x = useMotionValue(0);
 ```
 
 ### 체크 아이콘 애니메이션
+
 ```typescript
 <motion.div
   initial={{ scale: 0, rotate: -180 }}
   animate={{ scale: 1, rotate: 0 }}
   transition={{
-    type: 'spring',
+    type: "spring",
     stiffness: 260,
-    damping: 20
+    damping: 20,
   }}
 >
   <CheckCircle2 className="h-24 w-24" />
@@ -1944,6 +2028,7 @@ const x = useMotionValue(0);
 ### 자주 발생하는 문제
 
 #### 1. Image 컴포넌트 오류
+
 **문제**: `Image with src "..." is missing required "width" or "height" properties`
 **해결**: `fill` 속성 사용 시 부모 요소에 `position: relative` 적용
 
@@ -1954,6 +2039,7 @@ const x = useMotionValue(0);
 ```
 
 #### 2. Zustand 상태 업데이트 안됨
+
 **문제**: 장바구니 아이템 추가했는데 UI 업데이트 안됨
 **해결**: `set()` 함수 내부에서 불변성 유지
 
@@ -1966,18 +2052,16 @@ set({ items: [...items, newItem] });
 ```
 
 #### 3. Framer Motion 애니메이션 버벅임
+
 **문제**: 스와이프 동작이 부드럽지 않음
 **해결**: `dragElastic` 속성 조정, GPU 가속 활성화
 
 ```typescript
-<motion.div
-  drag="x"
-  dragElastic={0.1}
-  style={{ x, willChange: 'transform' }}
-/>
+<motion.div drag="x" dragElastic={0.1} style={{ x, willChange: "transform" }} />
 ```
 
 #### 4. Tailwind CSS 클래스 적용 안됨
+
 **문제**: 동적 클래스명이 작동하지 않음
 **해결**: 풀 클래스명 사용, 조건부 결합은 `cn()` 사용
 
@@ -1998,6 +2082,7 @@ className={cn(
 ## 📝 체크리스트 요약
 
 ### Phase 1
+
 - [ ] zustand, framer-motion, lucide-react 설치
 - [ ] shadcn/ui 컴포넌트 설치 (card, dialog, badge, input, sheet)
 - [ ] TypeScript 타입 정의 (`menu.ts`, `cart.ts`)
@@ -2006,6 +2091,7 @@ className={cn(
 - [ ] 모크 데이터 생성
 
 ### Phase 2
+
 - [ ] Header 컴포넌트
 - [ ] CategoryTabs 컴포넌트
 - [ ] MenuCard 컴포넌트
@@ -2014,6 +2100,7 @@ className={cn(
 - [ ] 메인 페이지 기본 구조
 
 ### Phase 3
+
 - [ ] MenuDetailModal 컴포넌트
 - [ ] CartSheet 컴포넌트
 - [ ] 실시간 검색 로직
@@ -2021,12 +2108,14 @@ className={cn(
 - [ ] 장바구니 상태 관리 통합
 
 ### Phase 4
+
 - [ ] SwipeToOrderButton 컴포넌트
 - [ ] OrderConfirmationModal 컴포넌트
 - [ ] 주문 플로우 통합
 - [ ] 주문 후 장바구니 초기화
 
 ### Phase 5
+
 - [ ] 이미지 최적화 (Next.js Image)
 - [ ] 검색 디바운싱 (useDebounce hook)
 - [ ] 접근성 개선 (ARIA 레이블, 키보드 네비게이션)
@@ -2039,16 +2128,19 @@ className={cn(
 ## 🎯 다음 단계 (Post-MVP)
 
 ### Phase 6: 백엔드 연동 (선택)
+
 - Supabase 또는 Firebase 통합
 - 실시간 주문 상태 업데이트
 - 사용자 인증 (소셜 로그인)
 
 ### Phase 7: 추가 기능
+
 - 주문 내역 조회
 - 찜하기/즐겨찾기
 - 리뷰 및 평점 시스템
 
 ### Phase 8: PWA 변환
+
 - Service Worker 설정
 - 오프라인 지원
 - 푸시 알림

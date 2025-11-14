@@ -5,7 +5,7 @@ import type { MenuItemDisplay } from './menu';
  */
 export interface CartItem extends MenuItemDisplay {
   quantity: number;        // 수량 (최소 1)
-  storeId?: number;        // 매장 ID (선택적)
+  storeId: number;         // 매장 ID (필수)
 }
 
 /**

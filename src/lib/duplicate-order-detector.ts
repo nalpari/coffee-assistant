@@ -54,17 +54,17 @@ interface OrderItem {
 }
 
 /**
- * 최근 주문 조회 (7일 이내)
+ * 최근 주문 조회 (시간 간격 기반)
  *
  * @param userId - 사용자 ID
  * @param menuName - 메뉴명
- * @param days - 조회 기간 (기본 7일)
+ * @param minutes - 조회 기간 (기본 5분)
  * @returns 최근 주문 목록
  */
 async function findRecentOrdersWithMenu(
   userId: string,
   menuName: string,
-  days: number = 7
+  minutes: number = 5
 ): Promise<Array<{
   id: number;
   order_number: string;
@@ -77,7 +77,7 @@ async function findRecentOrdersWithMenu(
   try {
     const supabase = await createSupabaseServerClient();
     const cutoffDate = new Date();
-    cutoffDate.setDate(cutoffDate.getDate() - days);
+    cutoffDate.setMinutes(cutoffDate.getMinutes() - minutes);
 
     // 주문 내역 조회 (items JSONB 필드에서 메뉴명 검색)
     const { data: orders, error } = await supabase
@@ -284,8 +284,8 @@ export async function detectDuplicateOrder(
     const firstItem = cartItems[0];
     const menuName = firstItem.name;
 
-    // 최근 주문 조회
-    const recentOrders = await findRecentOrdersWithMenu(userId, menuName, 7);
+    // 최근 주문 조회 (5분 이내만 중복으로 판단)
+    const recentOrders = await findRecentOrdersWithMenu(userId, menuName, 5);
 
     // 중복 주문 발견
     if (recentOrders.length > 0) {
@@ -315,6 +315,7 @@ export async function detectDuplicateOrder(
             hot: false,
             orderNo: 0,
             quantity: item.quantity,
+            storeId: mostRecentOrder.store_id ?? 0, // 매장 ID 추가
           }))
         : [];
 

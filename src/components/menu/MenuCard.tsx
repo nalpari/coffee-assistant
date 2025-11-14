@@ -11,7 +11,7 @@ import type { MenuItemDisplay } from '@/types/menu';
 interface MenuCardProps {
   item: MenuItemDisplay;
   onClick: () => void;
-  onAddToCart: (e: React.MouseEvent) => void;
+  onAddToCart?: (e: React.MouseEvent) => void;
 }
 
 export function MenuCard({ item, onClick, onAddToCart }: MenuCardProps) {
@@ -21,7 +21,7 @@ export function MenuCard({ item, onClick, onAddToCart }: MenuCardProps) {
   // 이벤트 버블링 방지
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    onAddToCart(e);
+    onAddToCart?.(e);
   };
 
   // 이미지 에러 핸들링
@@ -69,7 +69,7 @@ export function MenuCard({ item, onClick, onAddToCart }: MenuCardProps) {
             ))}
           </div>
           {/* Add to Cart Button */}
-          {item.available && (
+          {item.available && onAddToCart && (
             <Button
               size="icon"
               onClick={handleAddToCart}

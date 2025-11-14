@@ -22,7 +22,7 @@ function StoreDetailPageContent() {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const { position } = useGeolocation();
 
-  const { items } = useCartStore();
+  const { items, setSelectedStore } = useCartStore();
   const { setStoreId } = useCart();
   const cartItemCount = useMemo(
     () => items.reduce((total, item) => total + item.quantity, 0),
@@ -46,6 +46,18 @@ function StoreDetailPageContent() {
     data: storeMenus,
     isLoading: isMenuLoading,
   } = useStoreMenuQuery(Number.isNaN(numericStoreId) ? null : numericStoreId);
+
+  // 매장 정보가 로드되면 장바구니에 매장 상세 정보 저장
+  useEffect(() => {
+    if (store) {
+      setSelectedStore({
+        id: store.id,
+        name: store.name,
+        address: store.address ?? null,
+        phone: store.phone ?? null,
+      });
+    }
+  }, [store, setSelectedStore]);
 
   const isLoading = isStoreLoading || (isMenuLoading && !storeMenus);
 

@@ -23,7 +23,7 @@ interface CartSheetProps {
 
 export function CartSheet({ open, onOpenChange, storeId: propStoreId }: CartSheetProps) {
   const router = useRouter();
-  const { items, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems } = useCartStore();
+  const { items, selectedStore, updateQuantity, removeItem, clearCart, getTotalPrice, getTotalItems } = useCartStore();
   const { storeId: cartStoreId, setStoreId } = useCart();
   const [isProcessing, setIsProcessing] = useState(false);
   
@@ -129,6 +129,26 @@ export function CartSheet({ open, onOpenChange, storeId: propStoreId }: CartShee
 
         {/* 장바구니 내용 */}
         <div className="flex-1 overflow-y-auto px-6">
+          {/* 매장 정보 */}
+          {selectedStore && (
+            <div className="py-4 border-b">
+              <div className="bg-muted rounded-lg p-4">
+                <div className="flex items-start justify-between mb-2">
+                  <h3 className="font-semibold text-sm text-foreground">주문 매장</h3>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-foreground">{selectedStore.name}</p>
+                  {selectedStore.address && (
+                    <p className="text-xs text-muted-foreground">{selectedStore.address}</p>
+                  )}
+                  {selectedStore.phone && (
+                    <p className="text-xs text-muted-foreground">{selectedStore.phone}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {items.length === 0 ? (
             // 빈 장바구니
             <div className="flex flex-col items-center justify-center h-full text-center py-12">

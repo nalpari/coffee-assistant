@@ -40,6 +40,7 @@ export default function AIRecommendationsPage() {
   const [pendingStoreSelection, setPendingStoreSelection] = useState<{
     menuName: string;
     storeSelection: ChatResponse['storeSelection'];
+    hasCheckoutIntent?: boolean; // 결제 의도 저장
   } | null>(null);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateOrderInfo | null>(null);
@@ -74,6 +75,10 @@ export default function AIRecommendationsPage() {
       // 현재 선택된 매장 정보 가져오기
       const { selectedStore } = useCartStore.getState();
 
+      // "주문"만 있는 경우에만 매장 선택 초기화 (결제/구매는 기존 매장 정보 유지)
+      const isOrderOnlyRequest = /주문/.test(content) && !/결제|구매/.test(content);
+      const storeToSend = isOrderOnlyRequest ? null : selectedStore;
+
       // Shopping Agent API 호출
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -83,7 +88,7 @@ export default function AIRecommendationsPage() {
         body: JSON.stringify({
           message: content,
           cart: cartItems,
-          selectedStore,  // 매장 정보 전달 (NEW)
+          selectedStore: storeToSend,  // 주문 요청이면 null, 아니면 기존 매장 정보 전달
         }),
       });
 
@@ -119,9 +124,13 @@ export default function AIRecommendationsPage() {
 
       // select_store 액션 처리
       if (data.action === 'select_store' && data.storeSelection && data.menuName) {
+        // 사용자 메시지에 "결제" 또는 "구매" 키워드가 있는지 체크
+        const hasCheckoutIntent = /결제|구매/.test(content);
+        
         setPendingStoreSelection({
           menuName: data.menuName,
           storeSelection: data.storeSelection,
+          hasCheckoutIntent, // 결제 의도 저장
         });
         // AI 응답 추가
         addMessage({
@@ -289,43 +298,25 @@ export default function AIRecommendationsPage() {
         throw new Error('매장 정보를 불러올 수 없습니다.');
       }
 
-      // 장바구니에 추가
-      const { setItems, items, setSelectedStore } = useCartStore.getState();
-      const { setStoreId: setCartStoreId2 } = useCart.getState();
-      const existingItem = items.find(item => item.id === menuId && item.storeId === storeId);
-
-      if (existingItem) {
-        // 이미 장바구니에 있으면 수량 증가
-        setItems(
-          items.map(item =>
-            item.id === menuId && item.storeId === storeId
-              ? { ...item, quantity: item.quantity + 1 }
-              : item
-          )
-        );
-      } else {
-        // 새로 추가
-        setItems([
-          ...items,
-          {
-            ...menuData,
-            quantity: 1,
-            storeId: storeId,
-          },
-        ]);
-      }
-
-      // 매장 상세 정보 설정 (NEW)
+      // 매장 상세 정보 설정
+      const { setSelectedStore } = useCartStore.getState();
+      
       setSelectedStore({
         id: storeData.id,
         name: storeData.name,
         address: storeData.address,
         phone: storeData.phone,
       });
-      setCartStoreId2(storeId); // useCart의 storeId 설정 (CartSheet 동기화)
 
-      // AI에게 매장 선택 완료 메시지 전송
-      await handleSendMessage(`${pendingStoreSelection.menuName}을(를) 선택한 매장에서 주문하겠습니다.`);
+      // API에게 매장 선택 완료 및 장바구니 추가/결제 요청
+      // hasCheckoutIntent에 따라 다른 메시지 전송
+      if (pendingStoreSelection.hasCheckoutIntent) {
+        // 원래 결제 의도가 있었으면 결제 요청
+        await handleSendMessage(`${pendingStoreSelection.menuName}을(를) 결제해주세요.`);
+      } else {
+        // 주문만 했으면 장바구니 추가만
+        await handleSendMessage(`${pendingStoreSelection.menuName}을(를) 장바구니에 추가해주세요.`);
+      }
     } catch (error) {
       console.error('매장 선택 오류:', error);
       addMessage({
@@ -353,7 +344,7 @@ export default function AIRecommendationsPage() {
   // 로그인 가드: 로그인하지 않은 사용자에게 안내 표시
   if (authLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
+      <div className="flex flex-col items-center justify-center h-screen bg-linear-to-br from-purple-50 via-background to-blue-50">
         <div className="text-center">
           <Sparkles className="w-12 h-12 text-purple-500 animate-pulse mx-auto mb-4" />
           <p className="text-lg text-muted-foreground">로딩 중...</p>
@@ -364,9 +355,9 @@ export default function AIRecommendationsPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
+      <div className="flex flex-col items-center justify-center h-screen bg-linear-to-br from-purple-50 via-background to-blue-50">
         <div className="max-w-md mx-auto p-8 text-center space-y-6">
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
+          <div className="w-16 h-16 bg-linear-to-br from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold">AI 커피 추천</h1>
@@ -399,7 +390,7 @@ export default function AIRecommendationsPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-purple-50 via-background to-blue-50">
+    <div className="flex flex-col h-screen bg-linear-to-br from-purple-50 via-background to-blue-50">
       {/* 헤더 */}
       <AiRecommendationHeader
         onClose={() => router.push('/')}
@@ -455,7 +446,7 @@ export default function AIRecommendationsPage() {
               {/* 메시지 영역 */}
               <div className="flex items-start gap-2 w-full max-w-[90%] sm:max-w-[80%] lg:max-w-[70%]">
                 {/* AI 아이콘 */}
-                <div className="flex-shrink-0 w-8 h-8">
+                <div className="shrink-0 w-8 h-8">
                   <svg
                     width="32"
                     height="32"
