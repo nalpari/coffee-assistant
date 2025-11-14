@@ -24,6 +24,7 @@ describe('CartItem', () => {
     hot: false,
     orderNo: 1,
     quantity: 1,
+    storeId: 1, // Default store ID for testing
     ...overrides,
   });
 

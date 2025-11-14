@@ -11,7 +11,6 @@ import { AiRecommendationHeader } from '@/components/layout/AiRecommendationHead
 import { StoreSelectionCard } from '@/components/ai/StoreSelectionCard';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
-import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/contexts/AuthContext';
 import { getMenuItemById } from '@/lib/api/menu';
 import type { ChatResponse, DuplicateOrderInfo } from '@/types/shopping-agent';

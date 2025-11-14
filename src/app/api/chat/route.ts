@@ -12,6 +12,7 @@ import { processPayment } from '@/app/actions/payment';
 import { findRecentOrderByMenuName } from '@/lib/order-utils';
 import { findStoresByMenuName } from '@/lib/store-menu-utils';
 import type { ChatRequest, ChatResponse, ChatMessage, Order, StoreSelectionOption } from '@/types/shopping-agent';
+import type { CartItem } from '@/types/cart';
 
 const shoppingAgent = new ShoppingAgent();
 
