@@ -90,6 +90,16 @@ export class ConversationManager {
    */
   addToCart(userId: string, item: CartItem): CartItem[] {
     const context = this.getContext(userId);
+    
+    // 장바구니가 비어있지 않고, 다른 매장의 메뉴인 경우
+    if (context.cart.length > 0 && context.cart[0].storeId !== item.storeId) {
+      // 기존 장바구니 전체 삭제 후 새 메뉴만 추가
+      console.log(`[conversationManager] 다른 매장 감지: 기존 매장 ${context.cart[0].storeId} -> 새 매장 ${item.storeId}`);
+      context.cart = [item];
+      return context.cart;
+    }
+
+    // 같은 매장이거나 장바구니가 비어있는 경우
     const existingItem = context.cart.find((i) => i.id === item.id);
 
     if (existingItem) {

@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       conversationManager.updateCart(userId, cart);
     }
 
-    // 매장 정보 업데이트 (NEW)
+    // 매장 정보 업데이트 (클라이언트에서 주문 요청 시 null로 전달됨)
     if (selectedStore !== undefined) {
       conversationManager.updateSelectedStore(userId, selectedStore);
     }
@@ -92,6 +92,16 @@ export async function POST(req: NextRequest) {
         const products = await shoppingAgent.getProductsByIds(productIds);
         const selectedStoreId = context.selectedStore?.id;
 
+        // 재주문 시 매장이 선택되지 않은 경우 (안전장치)
+        if (!selectedStoreId) {
+          console.error('[reorder] 재주문 시 매장 정보가 없습니다.');
+          return NextResponse.json({
+            message: '재주문을 위해 매장 선택이 필요합니다.',
+            action: 'chat',
+            cart: context.cart,
+          });
+        }
+
         for (const productAction of aiResponse.products) {
           const product = products.find((p) => p.id === productAction.id);
           if (product && product.stock >= productAction.quantity) {
@@ -123,6 +133,19 @@ export async function POST(req: NextRequest) {
             });
           }
         }
+
+        // 실제 장바구니 상태 기반으로 메시지 재생성
+        const totalAmount = updatedCart.reduce((sum, item) => {
+          const price = item.discountPrice ?? item.price;
+          return sum + price * item.quantity;
+        }, 0);
+
+        const cartItemsDescription = updatedCart.map(item => {
+          const price = item.discountPrice ?? item.price;
+          return `${item.name} ${item.quantity}개(${price.toLocaleString()}원)`;
+        }).join(', ');
+
+        aiResponse.message = `재주문이 완료되었습니다.\n\n현재 장바구니: ${cartItemsDescription}\n총 ${totalAmount.toLocaleString()}원입니다.`;
       }
 
       updatedCart = await shoppingAgent.validateCartItems(updatedCart);
@@ -138,6 +161,18 @@ export async function POST(req: NextRequest) {
     // AI 응답 생성
     const aiResponse = await shoppingAgent.processMessage(context, message);
 
+    // 매장이 선택되지 않은 상태에서 add_to_cart 액션이 반환되면 select_store로 변환
+    if (aiResponse.action === 'add_to_cart' && !context.selectedStore && aiResponse.products && aiResponse.products.length > 0) {
+      // 첫 번째 제품의 이름을 menuName으로 사용
+      const firstProductId = aiResponse.products[0].id;
+      const products = await shoppingAgent.getProductsByIds([firstProductId]);
+      const menuName = products.length > 0 ? products[0].name : '';
+
+      aiResponse.action = 'select_store';
+      aiResponse.menuName = menuName;
+      aiResponse.message = `${menuName} 주문을 위해 매장을 선택해주세요.`;
+    }
+
     // AI 메시지 추가
     const aiMessage: ChatMessage = {
       id: `assistant-${Date.now()}`,
@@ -152,51 +187,31 @@ export async function POST(req: NextRequest) {
     let orders: Order[] | undefined = undefined;
     let order: Order | undefined = undefined;
 
-    // 사용자 메시지에 "결제", "주문", "구매" 등의 단어가 포함되어 있는지 확인
-    const hasCheckoutIntent = /결제|주문|구매/.test(message.toLowerCase());
+    // 사용자 메시지 분석: "주문"만 포함된 경우 vs "결제"/"구매" 포함된 경우 구분
+    const messageLower = message.toLowerCase();
+    const hasOrderOnly = /주문/.test(messageLower) && !/결제|구매/.test(messageLower);
+    const hasCheckoutIntent = /결제|구매/.test(messageLower) || (/주문/.test(messageLower) && /결제|구매/.test(messageLower));
 
     if (aiResponse.action === 'add_to_cart' && aiResponse.products) {
-      // 중복 주문 감지 (NEW)
-      const cartItemsToAdd = aiResponse.products.map((p) => ({
-        id: parseInt(p.id),
-        name: '', // 임시값 (실제로는 product 조회 후 설정됨)
-        description: '',
-        price: 0,
-        discountPrice: undefined,
-        image: null,
-        images: [],
-        category: '',
-        tags: [],
-        available: true,
-        popular: false,
-        cold: false,
-        hot: false,
-        orderNo: 0,
-        quantity: p.quantity,
-      }));
-
-      const duplicateResult = await shoppingAgent.checkDuplicateAndPrepareOptions(
-        userId,
-        cartItemsToAdd
-      );
-
-      // 중복 발견 시 Dialog 표시
-      if (duplicateResult.isDuplicate) {
-        return NextResponse.json({
-          message: '같은 메뉴의 최근 주문이 있습니다. 어떻게 하시겠습니까?',
-          action: 'check_duplicate',
-          cart: updatedCart,
-          duplicateInfo: duplicateResult,
-        });
-      }
-
-      // 중복 없으면 기존 플로우 진행
+      // 제품 정보 조회
       const productIds = aiResponse.products.map((p) => p.id);
       const products = await shoppingAgent.getProductsByIds(productIds);
 
       // 선택된 매장 ID 추출
       const selectedStoreId = context.selectedStore?.id;
 
+      // 매장이 선택되지 않은 경우 (안전장치)
+      if (!selectedStoreId) {
+        console.error('[add_to_cart] 매장이 선택되지 않았습니다. 이는 예상치 못한 동작입니다.');
+        return NextResponse.json({
+          message: '매장 선택이 필요합니다. 다시 주문해주세요.',
+          action: 'chat',
+          cart: context.cart,
+        });
+      }
+
+      // 추가할 메뉴 정보 수집
+      const itemsToAdd: CartItem[] = [];
       for (const productAction of aiResponse.products) {
         const product = products.find((p) => p.id === productAction.id);
         if (product && product.stock >= productAction.quantity) {
@@ -216,7 +231,7 @@ export async function POST(req: NextRequest) {
             .eq('id', parseInt(product.id))
             .single();
 
-          updatedCart = conversationManager.addToCart(userId, {
+          itemsToAdd.push({
             id: parseInt(product.id),
             name: product.name,
             description: product.description || '',
@@ -237,9 +252,34 @@ export async function POST(req: NextRequest) {
           });
         }
       }
+
+      // 장바구니에 추가
+      for (const item of itemsToAdd) {
+        updatedCart = conversationManager.addToCart(userId, item);
+      }
+
+      // 실제 장바구니 상태 기반으로 시스템 메시지 생성
+      const totalAmount = updatedCart.reduce((sum, item) => {
+        const price = item.discountPrice ?? item.price;
+        return sum + price * item.quantity;
+      }, 0);
+
+      const cartItemsDescription = updatedCart.map(item => {
+        const price = item.discountPrice ?? item.price;
+        return `${item.name} ${item.quantity}개(${price.toLocaleString()}원)`;
+      }).join(', ');
+
+      // AI 메시지를 실제 장바구니 상태로 완전히 교체
+      aiResponse.message = `장바구니에 추가했습니다.\n\n현재 장바구니: ${cartItemsDescription}\n총 ${totalAmount.toLocaleString()}원입니다.`;
       
-      // 결제 의도가 있고 장바구니에 아이템이 추가되었으면 자동으로 결제 진행
-      if (hasCheckoutIntent && updatedCart.length > 0) {
+      // conversationHistory의 마지막 AI 메시지도 업데이트
+      const lastMessage = context.conversationHistory[context.conversationHistory.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.content = aiResponse.message;
+      }
+      
+      // "주문"만 있는 경우는 장바구니 추가만 하고, "결제"/"구매"가 포함된 경우에만 자동 결제 진행
+      if (hasCheckoutIntent && !hasOrderOnly && updatedCart.length > 0) {
         // add_to_cart 후 자동으로 checkout 처리
         // 사용자 정보 가져오기
         const userEmail = session.user.email || '';
@@ -347,6 +387,18 @@ export async function POST(req: NextRequest) {
         );
       }
     } else if (aiResponse.action === 'checkout') {
+      // "주문"만 있는 경우는 결제하지 않고 장바구니 추가만 수행
+      if (hasOrderOnly) {
+        // checkout 액션을 chat으로 변경하여 결제 진행하지 않음
+        aiResponse.action = 'chat';
+        aiResponse.message = '장바구니에 추가되었습니다. 결제를 진행하시려면 "결제해줘" 또는 "구매해줘"라고 말씀해주세요.';
+        return NextResponse.json({
+          message: aiResponse.message,
+          action: aiResponse.action,
+          cart: updatedCart,
+        });
+      }
+
       // 결제 진행: 주문 생성 및 결제 처리
       if (updatedCart.length === 0) {
         // 장바구니가 비어있으면 에러 메시지 반환

@@ -32,7 +32,7 @@ export default function HomePage() {
     isOpen?: boolean;
   }>({});
 
-  const { items, addItem } = useCartStore();
+  const { items } = useCartStore();
 
   const cartItemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -68,10 +68,6 @@ export default function HomePage() {
 
   const handleItemClick = (item: MenuItemDisplay) => {
     router.push(`/products/${item.id}`);
-  };
-
-  const handleAddToCart = (item: MenuItemDisplay) => {
-    addItem(item);
   };
 
   const handleCartClick = () => {
@@ -156,7 +152,6 @@ export default function HomePage() {
                   <MenuGrid
                     items={displayedItems}
                     onItemClick={handleItemClick}
-                    onAddToCart={handleAddToCart}
                   />
 
                   {isFetchingNextPage && <LoadingSpinner />}

@@ -33,15 +33,14 @@ export default function ProductDetailPage() {
   );
 
   // URL 쿼리 파라미터에서 매장 ID 가져오기
+  const storeIdParam = searchParams.get('storeId');
+  const storeId = storeIdParam ? Number(storeIdParam) : null;
+
   useEffect(() => {
-    const storeIdParam = searchParams.get('storeId');
-    if (storeIdParam) {
-      const storeId = Number(storeIdParam);
-      if (!Number.isNaN(storeId)) {
-        setStoreId(storeId);
-      }
+    if (storeId && !Number.isNaN(storeId)) {
+      setStoreId(storeId);
     }
-  }, [searchParams, setStoreId]);
+  }, [storeId, setStoreId]);
 
   const { data: product, isLoading, isError, error } = useProductQuery({
     productId,
@@ -50,9 +49,16 @@ export default function ProductDetailPage() {
   const handleAddToCart = () => {
     if (!product || !product.available) return;
 
+    // 매장 ID 필수 검증
+    if (!storeId || Number.isNaN(storeId)) {
+      alert('매장을 선택한 후 장바구니에 담을 수 있습니다.');
+      router.push('/');
+      return;
+    }
+
     // 수량만큼 반복해서 추가 (또는 store에서 수량 처리)
     for (let i = 0; i < quantity; i++) {
-      addItem(product);
+      addItem(product, storeId);
     }
 
     // 성공 피드백 (향후 toast 메시지 추가 가능)

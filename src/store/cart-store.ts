@@ -9,7 +9,7 @@ interface CartStore {
   selectedStore: SelectedStore | null;  // 매장 상세 정보
 
   // 아이템 추가 (이미 있으면 수량 증가)
-  addItem: (item: MenuItemDisplay, storeId?: number) => void;
+  addItem: (item: MenuItemDisplay, storeId: number) => void;
 
   // 아이템 제거
   removeItem: (id: number) => void;
@@ -42,35 +42,35 @@ export const useCartStore = create<CartStore>((set, get) => ({
   selectedStore: null,
 
   addItem: (item, storeId) => {
-    const { items, storeId: currentStoreId } = get();
+    const { items } = get();
 
-    // 매장 ID가 전달되면 저장, 기존 매장과 다르면 장바구니 초기화
-    if (storeId !== undefined && storeId !== currentStoreId) {
-      if (currentStoreId !== null && items.length > 0) {
-        // 다른 매장의 아이템이 이미 있으면 확인 후 초기화
-        const shouldClear = window.confirm(
-          '다른 매장의 상품이 장바구니에 있습니다. 장바구니를 비우고 새 매장의 상품을 담으시겠습니까?'
-        );
-        if (shouldClear) {
-          set({ items: [], storeId, selectedStore: null });
-        } else {
-          return; // 사용자가 취소하면 추가하지 않음
-        }
-      } else {
-        set({ storeId });
-      }
+    // 장바구니가 비어있지 않고, 다른 매장의 메뉴인 경우
+    if (items.length > 0 && items[0].storeId !== storeId) {
+      // 기존 장바구니 전체 삭제 후 새 메뉴만 추가
+      // selectedStore는 유지 (매장 상세 페이지에서 setSelectedStore로 설정됨)
+      set({
+        items: [{ ...item, quantity: 1, storeId }],
+        storeId
+      });
+      return;
     }
 
+    // 같은 매장이거나 장바구니가 비어있는 경우
     const existingItem = items.find((i) => i.id === item.id);
 
     if (existingItem) {
+      // 이미 있으면 수량 증가
       set({
         items: items.map((i) =>
           i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         ),
       });
     } else {
-      set({ items: [...items, { ...item, quantity: 1 }] });
+      // 새로 추가
+      set({
+        items: [...items, { ...item, quantity: 1, storeId }],
+        storeId
+      });
     }
   },
 

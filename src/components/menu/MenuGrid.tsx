@@ -6,7 +6,7 @@ import type { MenuItemDisplay } from '@/types/menu';
 interface MenuGridProps {
   items: MenuItemDisplay[];
   onItemClick: (item: MenuItemDisplay) => void;
-  onAddToCart: (item: MenuItemDisplay) => void;
+  onAddToCart?: (item: MenuItemDisplay) => void;
 }
 
 export function MenuGrid({ items, onItemClick, onAddToCart }: MenuGridProps) {
@@ -25,10 +25,10 @@ export function MenuGrid({ items, onItemClick, onAddToCart }: MenuGridProps) {
           key={item.id}
           item={item}
           onClick={() => onItemClick(item)}
-          onAddToCart={(e) => {
+          onAddToCart={onAddToCart ? (e) => {
             e.stopPropagation();
             onAddToCart(item);
-          }}
+          } : undefined}
         />
       ))}
     </div>
