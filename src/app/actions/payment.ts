@@ -82,12 +82,14 @@ export async function processPayment(
       return { success: false, error: '결제 처리에 실패했습니다.' }
     }
 
-    // 5. 주문 상태 업데이트 (pending → paid)
+    // 5. 주문 상태 업데이트 (pending → completed)
+    // MVP: 결제 완료 즉시 '픽업 완료' 상태로 변경
     const { error: updateError } = await supabase
       .from('orders')
       .update({
-        status: 'paid',
+        status: 'completed',
         updated_at: new Date().toISOString(),
+        completed_at: new Date().toISOString(),
       })
       .eq('id', request.orderId)
 
