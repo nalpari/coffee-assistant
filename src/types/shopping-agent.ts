@@ -14,10 +14,11 @@ export type AIAction =
   | 'add_to_cart' // 장바구니에 추가
   | 'remove_from_cart' // 장바구니에서 제거
   | 'checkout' // 결제 진행
-  | 'get_orders' // 주문 내역 조회 (NEW)
-  | 'get_order_status' // 특정 주문 상태 조회 (NEW)
-  | 'select_store' // 매장 선택 필요 (NEW)
-  | 'check_duplicate' // 중복 주문 확인 (NEW)
+  | 'get_orders' // 주문 내역 조회
+  | 'get_order_status' // 특정 주문 상태 조회
+  | 'select_store' // 매장 선택 필요
+  | 'check_duplicate' // 중복 주문 확인
+  | 'find_nearest_store' // 가장 가까운 매장 찾기
   | 'chat'; // 일반 대화
 
 /**
@@ -83,17 +84,26 @@ export interface Product {
 }
 
 /**
+ * 사용자 위치 정보
+ */
+export interface UserLocation {
+  lat: number;
+  lon: number;
+}
+
+/**
  * 채팅 API 요청
  */
 export interface ChatRequest {
   message: string;
   cart?: CartItem[];
-  selectedStore?: SelectedStore | null;  // 선택된 매장 정보 (NEW)
+  selectedStore?: SelectedStore | null;  // 선택된 매장 정보
   userChoice?: {
     type: 'reorder' | 'new_store';
     orderId?: number;
     storeId?: number;
-  }; // 사용자 선택 (중복 주문 확인 시) (NEW)
+  }; // 사용자 선택 (중복 주문 확인 시)
+  userLocation?: UserLocation; // 사용자 위치 정보 (가까운 매장 찾기 시)
 }
 
 /**
@@ -162,6 +172,19 @@ export interface DuplicateOrderInfo {
 }
 
 /**
+ * 가장 가까운 매장 정보 (find_nearest_store 액션 시)
+ */
+export interface NearestStoreInfo {
+  storeId: number;
+  storeName: string;
+  address: string | null;
+  distance: number; // km 단위
+  distanceFormatted: string; // "1.2 km" 또는 "450 m"
+  latitude: number;
+  longitude: number;
+}
+
+/**
  * 채팅 API 응답
  */
 export interface ChatResponse {
@@ -177,4 +200,6 @@ export interface ChatResponse {
   storeSelection?: StoreSelectionOption; // 매장 선택 옵션 (select_store 액션 시) (NEW)
   menuName?: string; // 메뉴명 (select_store 액션 시) (NEW)
   duplicateInfo?: DuplicateOrderInfo; // 중복 주문 정보 (check_duplicate 액션 시) (NEW)
+  nearestStore?: NearestStoreInfo; // 가장 가까운 매장 (find_nearest_store 액션 시) (NEW)
+  requiresLocation?: boolean; // 위치 정보가 필요한 경우 (find_nearest_store 액션 시) (NEW)
 }

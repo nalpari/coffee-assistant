@@ -11,8 +11,9 @@ import { createOrder } from '@/app/actions/order';
 import { processPayment } from '@/app/actions/payment';
 import { findRecentOrderByMenuName } from '@/lib/order-utils';
 import { findStoresByMenuName } from '@/lib/store-menu-utils';
-import type { ChatRequest, ChatResponse, ChatMessage, Order, StoreSelectionOption } from '@/types/shopping-agent';
+import type { ChatRequest, ChatResponse, ChatMessage, Order, StoreSelectionOption, NearestStoreInfo } from '@/types/shopping-agent';
 import type { CartItem } from '@/types/cart';
+import { calculateDistance, formatDistance } from '@/lib/location-utils';
 
 const shoppingAgent = new ShoppingAgent();
 
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id;
 
     const body: ChatRequest = await req.json();
-    const { message, cart, selectedStore, userChoice } = body;
+    const { message, cart, selectedStore, userChoice, userLocation } = body;
 
     // 3. 메시지 검증
     if (!message || typeof message !== 'string') {
@@ -590,6 +591,84 @@ export async function POST(req: NextRequest) {
         cart: updatedCart,
         storeSelection,
         menuName,
+      };
+
+      return NextResponse.json(response);
+    } else if (aiResponse.action === 'find_nearest_store') {
+      // 가장 가까운 매장 찾기
+
+      // 위치 정보가 없는 경우 클라이언트에게 위치 요청
+      if (!userLocation) {
+        const response: ChatResponse = {
+          message: '가까운 매장을 찾으려면 위치 정보가 필요합니다. 위치 접근을 허용해주세요.',
+          action: 'find_nearest_store',
+          cart: updatedCart,
+          requiresLocation: true,
+        };
+        return NextResponse.json(response);
+      }
+
+      // 영업 중인 모든 매장 조회
+      const supabaseClient = await createSupabaseServerClient();
+      const { data: stores, error: storeError } = await supabaseClient
+        .from('stores')
+        .select('id, name, address, latitude, longitude, status')
+        .eq('status', 'E0201'); // 영업 중인 매장만
+
+      if (storeError || !stores || stores.length === 0) {
+        return NextResponse.json({
+          message: '현재 영업 중인 매장을 찾을 수 없습니다.',
+          action: 'chat',
+          cart: updatedCart,
+        });
+      }
+
+      // 각 매장까지의 거리 계산
+      const storesWithDistance = stores
+        .filter(store => store.latitude && store.longitude)
+        .map(store => {
+          const distance = calculateDistance(
+            userLocation.lat,
+            userLocation.lon,
+            store.latitude!,
+            store.longitude!
+          );
+          return {
+            ...store,
+            distance,
+            distanceFormatted: formatDistance(distance),
+          };
+        })
+        .sort((a, b) => a.distance - b.distance);
+
+      if (storesWithDistance.length === 0) {
+        return NextResponse.json({
+          message: '위치 정보가 있는 매장을 찾을 수 없습니다.',
+          action: 'chat',
+          cart: updatedCart,
+        });
+      }
+
+      // 가장 가까운 매장
+      const nearest = storesWithDistance[0];
+      const nearestStore: NearestStoreInfo = {
+        storeId: nearest.id,
+        storeName: nearest.name,
+        address: nearest.address,
+        distance: nearest.distance,
+        distanceFormatted: nearest.distanceFormatted,
+        latitude: nearest.latitude!,
+        longitude: nearest.longitude!,
+      };
+
+      // 응답 메시지 생성
+      const responseMessage = `가장 가까운 매장은 "${nearest.name}"입니다.\n📍 ${nearest.address || '주소 정보 없음'}\n📏 거리: ${nearest.distanceFormatted}\n\n이 매장으로 주문하시겠습니까?`;
+
+      const response: ChatResponse = {
+        message: responseMessage,
+        action: 'find_nearest_store',
+        cart: updatedCart,
+        nearestStore,
       };
 
       return NextResponse.json(response);

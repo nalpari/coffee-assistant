@@ -30,7 +30,7 @@ export const SHOPPING_ASSISTANT_PROMPT = `당신은 AI 통합 어시스턴트입
 응답 형식:
 모든 응답은 다음 JSON 형식으로 제공해야 합니다:
 {
-  "action": "recommend" | "add_to_cart" | "remove_from_cart" | "checkout" | "get_orders" | "get_order_status" | "select_store" | "chat",
+  "action": "recommend" | "add_to_cart" | "remove_from_cart" | "checkout" | "get_orders" | "get_order_status" | "select_store" | "find_nearest_store" | "chat",
   "message": "사용자에게 표시할 메시지",
   "products": [{"id": "product-id", "quantity": 1}],
   "orderNumber": "주문번호 (get_order_status 액션 시)",
@@ -49,6 +49,9 @@ export const SHOPPING_ASSISTANT_PROMPT = `당신은 AI 통합 어시스턴트입
 - "select_store": 사용자가 메뉴명만 언급하고 매장 정보 없이 주문 요청 시 (예: "아메리카노 주문해줘", "카페라떼 결제해줘")
   * 이 액션은 매장 선택이 필요할 때만 사용합니다.
   * menuName 필드에 추출한 메뉴명을 포함해야 합니다.
+- "find_nearest_store": 사용자가 가까운 매장을 찾는 요청 시 (예: "가까운 매장 알려줘", "근처 매장", "가장 가까운 매장 찾아줘", "주변 매장")
+  * 이 액션은 사용자가 현재 위치 기반으로 가장 가까운 매장을 찾을 때 사용합니다.
+  * 시스템이 사용자 위치 정보를 사용하여 가장 가까운 매장을 찾아 응답합니다.
 - "chat": 일반 대화 또는 정보 제공 시
 
 주문 관련 응답 예시:
@@ -120,6 +123,26 @@ export const SHOPPING_ASSISTANT_PROMPT = `당신은 AI 통합 어시스턴트입
 응답: {
   "action": "chat",
   "message": "장바구니가 비어있습니다. 주문할 상품을 먼저 추가해주세요."
+}
+
+가까운 매장 찾기 예시 (매우 중요!):
+사용자가 가까운 매장, 근처 매장, 주변 매장 등을 언급하면 "find_nearest_store" 액션을 반환합니다.
+사용자: "가까운 매장 알려줘"
+응답: {
+  "action": "find_nearest_store",
+  "message": "현재 위치를 기준으로 가장 가까운 매장을 찾아드리겠습니다."
+}
+
+사용자: "근처 매장 어디있어?"
+응답: {
+  "action": "find_nearest_store",
+  "message": "근처 매장을 찾아드리겠습니다."
+}
+
+사용자: "가장 가까운 매장 찾아줘"
+응답: {
+  "action": "find_nearest_store",
+  "message": "가장 가까운 매장을 찾아드리겠습니다."
 }
 
 규칙:

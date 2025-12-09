@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, LogIn, Home } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -12,8 +12,9 @@ import { StoreSelectionCard } from '@/components/ai/StoreSelectionCard';
 import { useChatStore } from '@/store/chat-store';
 import { useCartStore } from '@/store/cart-store';
 import { useAuth } from '@/contexts/AuthContext';
+import { GeolocationProvider, useGeolocation } from '@/contexts/GeolocationContext';
 import { getMenuItemById } from '@/lib/api/menu';
-import type { ChatResponse, DuplicateOrderInfo } from '@/types/shopping-agent';
+import type { ChatResponse, DuplicateOrderInfo, UserLocation } from '@/types/shopping-agent';
 
 function formatTimestamp(date: Date): string {
   const hours = date.getHours();
@@ -28,11 +29,12 @@ function formatTimestamp(date: Date): string {
   return `${period} ${displayHours}:${displayMinutes}  ${dayName}`;
 }
 
-export default function AIRecommendationsPage() {
+function AIRecommendationsContent() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { messages, isLoading, addMessage, clearMessages, setLoading } = useChatStore();
   const { items: cartItems } = useCartStore();
+  const { position: userPosition, requestLocation, loading: locationLoading } = useGeolocation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const hasInitializedRef = useRef(false);
   const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
@@ -43,11 +45,27 @@ export default function AIRecommendationsPage() {
   } | null>(null);
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [duplicateInfo, setDuplicateInfo] = useState<DuplicateOrderInfo | null>(null);
+  // 위치 정보 요청 후 재시도할 메시지 저장
+  const [pendingLocationMessage, setPendingLocationMessage] = useState<string | null>(null);
 
   // 메시지 자동 스크롤
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // 위치 정보가 들어오면 pending 메시지 재시도
+  useEffect(() => {
+    if (userPosition && pendingLocationMessage && !locationLoading) {
+      const messageToRetry = pendingLocationMessage;
+      setPendingLocationMessage(null);
+      // 위치 정보와 함께 메시지 재전송
+      handleSendMessageWithLocation(messageToRetry, {
+        lat: userPosition.lat,
+        lon: userPosition.lon,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userPosition, pendingLocationMessage, locationLoading]);
 
   // 초기 환영 메시지 (한 번만 실행)
   useEffect(() => {
@@ -60,6 +78,95 @@ export default function AIRecommendationsPage() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // 위치 정보와 함께 메시지 전송하는 내부 함수
+  const handleSendMessageWithLocation = useCallback(async (content: string, location?: UserLocation) => {
+    setLoading(true);
+
+    try {
+      const { selectedStore } = useCartStore.getState();
+      const isOrderOnlyRequest = /주문/.test(content) && !/결제|구매/.test(content);
+      const storeToSend = isOrderOnlyRequest ? null : selectedStore;
+
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: content,
+          cart: cartItems,
+          selectedStore: storeToSend,
+          userLocation: location,
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          addMessage({
+            role: 'assistant',
+            content: '세션이 만료되었습니다. 다시 로그인해주세요.',
+          });
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+          return;
+        }
+        throw new Error('AI 응답을 받는 중 오류가 발생했습니다.');
+      }
+
+      const data: ChatResponse = await response.json();
+
+      // find_nearest_store 액션에서 위치 정보가 필요한 경우
+      if (data.action === 'find_nearest_store' && data.requiresLocation) {
+        // 위치 요청 메시지 표시
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        // 위치 정보 요청
+        setPendingLocationMessage(content);
+        requestLocation();
+        setLoading(false);
+        return;
+      }
+
+      // find_nearest_store 성공 응답 처리
+      if (data.action === 'find_nearest_store' && data.nearestStore) {
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // 기타 응답 처리
+      addMessage({
+        role: 'assistant',
+        content: data.message,
+      });
+
+      if (data.cart) {
+        const { setItems } = useCartStore.getState();
+        setItems(data.cart);
+      }
+
+      if (data.action === 'checkout' && data.order) {
+        setIsProcessingCheckout(true);
+        const orderId = typeof data.order.id === 'string' ? parseInt(data.order.id) : data.order.id;
+        setTimeout(() => {
+          router.push(`/orders/${orderId}/complete`);
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('AI 채팅 오류:', error);
+      addMessage({
+        role: 'assistant',
+        content: '죄송합니다. 응답을 생성하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [cartItems, addMessage, router, setLoading, requestLocation]);
 
   const handleSendMessage = async (content: string) => {
     // 사용자 메시지 추가
@@ -78,6 +185,11 @@ export default function AIRecommendationsPage() {
       const isOrderOnlyRequest = /주문/.test(content) && !/결제|구매/.test(content);
       const storeToSend = isOrderOnlyRequest ? null : selectedStore;
 
+      // 현재 위치 정보 가져오기 (있는 경우)
+      const currentLocation: UserLocation | undefined = userPosition
+        ? { lat: userPosition.lat, lon: userPosition.lon }
+        : undefined;
+
       // Shopping Agent API 호출
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -88,6 +200,7 @@ export default function AIRecommendationsPage() {
           message: content,
           cart: cartItems,
           selectedStore: storeToSend,  // 주문 요청이면 null, 아니면 기존 매장 정보 전달
+          userLocation: currentLocation,  // 위치 정보 추가
         }),
       });
 
@@ -125,13 +238,37 @@ export default function AIRecommendationsPage() {
       if (data.action === 'select_store' && data.storeSelection && data.menuName) {
         // 사용자 메시지에 "결제" 또는 "구매" 키워드가 있는지 체크
         const hasCheckoutIntent = /결제|구매/.test(content);
-        
+
         setPendingStoreSelection({
           menuName: data.menuName,
           storeSelection: data.storeSelection,
           hasCheckoutIntent, // 결제 의도 저장
         });
         // AI 응답 추가
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        setLoading(false);
+        return;
+      }
+
+      // find_nearest_store 액션 처리 (위치 정보 필요 시)
+      if (data.action === 'find_nearest_store' && data.requiresLocation) {
+        // 위치 요청 메시지 표시
+        addMessage({
+          role: 'assistant',
+          content: data.message,
+        });
+        // 위치 정보 요청 후 재시도할 메시지 저장
+        setPendingLocationMessage(content);
+        requestLocation();
+        setLoading(false);
+        return;
+      }
+
+      // find_nearest_store 성공 응답 처리
+      if (data.action === 'find_nearest_store' && data.nearestStore) {
         addMessage({
           role: 'assistant',
           content: data.message,
@@ -548,5 +685,13 @@ export default function AIRecommendationsPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function AIRecommendationsPage() {
+  return (
+    <GeolocationProvider autoFetch={false}>
+      <AIRecommendationsContent />
+    </GeolocationProvider>
   );
 }
