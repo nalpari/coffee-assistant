@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { StoreSearchHeader, type SortOption } from '@/components/store/StoreSearchHeader';
@@ -16,12 +16,15 @@ const DEFAULT_POSITION = { lat: 37.556960, lon: 126.934305 };
 
 function StoresPageContent() {
   const router = useRouter();
-  const { position: userPosition } = useGeolocation();
+  const { position: userPosition, loading: locationLoading, requestLocation } = useGeolocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortOption | undefined>('nearest');
   const [isOpenOnly, setIsOpenOnly] = useState(false);
+  // 위치 기반 정렬 토글 상태
+  const [isLocationSortEnabled, setIsLocationSortEnabled] = useState(false);
 
-  const effectivePosition = userPosition ?? DEFAULT_POSITION;
+  // 위치 기반 정렬이 활성화된 경우에만 사용자 위치 사용, 아니면 기본 위치 사용
+  const effectivePosition = isLocationSortEnabled && userPosition ? userPosition : DEFAULT_POSITION;
 
   const {
     data,
@@ -71,10 +74,33 @@ function StoresPageContent() {
     refetch();
   };
 
+  // 위치 버튼 토글 핸들러
+  // 위치 요청 중이거나 완료되면 자동으로 활성화됨
+  const handleLocationToggle = useCallback(() => {
+    if (isLocationSortEnabled) {
+      // 위치 기반 정렬 비활성화
+      setIsLocationSortEnabled(false);
+    } else {
+      // 위치 기반 정렬 활성화
+      if (userPosition) {
+        // 이미 위치 정보가 있으면 바로 활성화
+        setIsLocationSortEnabled(true);
+        setSortBy('nearest'); // 가까운 순 정렬 자동 적용
+      } else {
+        // 위치 정보가 없으면 요청하고, 미리 활성화 상태로 설정
+        // 위치 정보가 들어오면 거리 계산이 적용됨
+        setIsLocationSortEnabled(true);
+        setSortBy('nearest');
+        requestLocation();
+      }
+    }
+  }, [isLocationSortEnabled, userPosition, requestLocation]);
+
   const handleReset = () => {
     setSearchQuery('');
     setSortBy('nearest');
     setIsOpenOnly(false);
+    setIsLocationSortEnabled(false);
     refetch();
   };
 
@@ -101,13 +127,15 @@ function StoresPageContent() {
         searchValue={searchQuery}
         onSearchChange={setSearchQuery}
         onSearchSubmit={handleSearchSubmit}
-        onLocationClick={() => refetch()}
+        onLocationClick={handleLocationToggle}
         onSortChange={setSortBy}
         onFilterClick={() => {}}
         onReset={handleReset}
         selectedSort={sortBy}
         isOpenOnly={isOpenOnly}
         onToggleOpen={() => setIsOpenOnly((previous) => !previous)}
+        isLocationSortEnabled={isLocationSortEnabled}
+        isLocationLoading={locationLoading}
       />
 
       {/* Store List */}

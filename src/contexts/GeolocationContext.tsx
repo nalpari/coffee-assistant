@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
 
 interface GeolocationPosition {
   lat: number;
@@ -11,6 +11,10 @@ interface GeolocationState {
   position: GeolocationPosition | null;
   error: string | null;
   loading: boolean;
+  /** 수동으로 현재 위치를 요청하는 함수 */
+  requestLocation: () => void;
+  /** 위치 권한이 승인되었는지 여부 */
+  isLocationEnabled: boolean;
 }
 
 const GeolocationContext = createContext<GeolocationState | undefined>(undefined);
@@ -21,71 +25,96 @@ interface GeolocationProviderProps {
 }
 
 export function GeolocationProvider({ children, autoFetch = false }: GeolocationProviderProps) {
-  const [state, setState] = useState<GeolocationState>({
-    position: null,
-    error: null,
-    loading: autoFetch, // autoFetch가 true일 때만 loading 상태
-  });
+  const [position, setPosition] = useState<GeolocationPosition | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(autoFetch);
+  const [isLocationEnabled, setIsLocationEnabled] = useState(false);
 
-  useEffect(() => {
-    // autoFetch가 false이면 위치를 가져오지 않음
-    if (!autoFetch) {
-      return;
-    }
-
+  // 위치 요청 함수 (수동 또는 자동 호출)
+  const fetchLocation = useCallback(() => {
     // Geolocation API 지원 확인
     if (!navigator.geolocation) {
-      setState({
-        position: null,
-        error: '브라우저가 위치 서비스를 지원하지 않습니다.',
-        loading: false,
-      });
+      setError('브라우저가 위치 서비스를 지원하지 않습니다.');
+      setLoading(false);
+      setIsLocationEnabled(false);
       return;
     }
 
-    // 한 번만 현재 위치 가져오기 (추적하지 않음)
+    // HTTPS가 아닌 경우 경고 (localhost 제외)
+    if (
+      typeof window !== 'undefined' &&
+      window.location.protocol !== 'https:' &&
+      !window.location.hostname.includes('localhost') &&
+      window.location.hostname !== '127.0.0.1'
+    ) {
+      setError('위치 서비스는 HTTPS 환경에서만 사용할 수 있습니다.');
+      setLoading(false);
+      setIsLocationEnabled(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setState({
-          position: {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude,
-          },
-          error: null,
-          loading: false,
+      (pos) => {
+        setPosition({
+          lat: pos.coords.latitude,
+          lon: pos.coords.longitude,
         });
+        setError(null);
+        setLoading(false);
+        setIsLocationEnabled(true);
       },
-      (error) => {
+      (err) => {
         let errorMessage = '위치 정보를 가져올 수 없습니다.';
 
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
+        switch (err.code) {
+          case err.PERMISSION_DENIED:
             errorMessage = '위치 권한이 거부되었습니다.';
             break;
-          case error.POSITION_UNAVAILABLE:
+          case err.POSITION_UNAVAILABLE:
             errorMessage = '위치 정보를 사용할 수 없습니다.';
             break;
-          case error.TIMEOUT:
+          case err.TIMEOUT:
             errorMessage = '위치 정보 요청 시간이 초과되었습니다.';
             break;
         }
 
-        setState({
-          position: null,
-          error: errorMessage,
-          loading: false,
-        });
+        setError(errorMessage);
+        setLoading(false);
+        setIsLocationEnabled(false);
       },
       {
-        enableHighAccuracy: false, // 배터리 절약
+        enableHighAccuracy: true, // 높은 정확도 사용
         maximumAge: 300000, // 5분간 캐시된 위치 사용
         timeout: 10000, // 10초 타임아웃
       }
     );
-  }, [autoFetch]);
+  }, []);
+
+  // 수동으로 위치 요청하는 함수 (외부에서 호출 가능)
+  const requestLocation = useCallback(() => {
+    fetchLocation();
+  }, [fetchLocation]);
+
+  // autoFetch가 true이면 마운트 시 자동으로 위치 가져오기
+  useEffect(() => {
+    if (autoFetch) {
+      fetchLocation();
+    }
+  }, [autoFetch, fetchLocation]);
+
+  const value: GeolocationState = {
+    position,
+    error,
+    loading,
+    requestLocation,
+    isLocationEnabled,
+  };
 
   return (
-    <GeolocationContext.Provider value={state}>
+    <GeolocationContext.Provider value={value}>
       {children}
     </GeolocationContext.Provider>
   );

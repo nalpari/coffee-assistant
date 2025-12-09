@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, MapPin, RefreshCw, SlidersHorizontal, X } from 'lucide-react';
+import { Search, MapPin, RefreshCw, SlidersHorizontal, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type SortOption = 'nearest' | 'popular' | 'recent';
@@ -16,6 +16,10 @@ interface StoreSearchHeaderProps {
   selectedSort?: SortOption;
   isOpenOnly: boolean;
   onToggleOpen: () => void;
+  /** 위치 기반 정렬이 활성화되었는지 여부 */
+  isLocationSortEnabled?: boolean;
+  /** 위치 로딩 중인지 여부 */
+  isLocationLoading?: boolean;
 }
 
 export function StoreSearchHeader({
@@ -29,6 +33,8 @@ export function StoreSearchHeader({
   selectedSort,
   isOpenOnly,
   onToggleOpen,
+  isLocationSortEnabled = false,
+  isLocationLoading = false,
 }: StoreSearchHeaderProps) {
   const handleNearestClick = () => {
     onSortChange?.(selectedSort === 'nearest' ? undefined : 'nearest');
@@ -78,14 +84,32 @@ export function StoreSearchHeader({
           </button>
         </div>
 
-        {/* Location Button */}
+        {/* Location Button - 토글 방식 */}
         <button
           type="button"
           onClick={onLocationClick}
-          className="flex h-11 w-11 items-center justify-center rounded-full border border-[#E2E2E2] bg-white"
-          aria-label="위치 설정"
+          disabled={isLocationLoading}
+          className={cn(
+            'flex h-11 w-11 items-center justify-center rounded-full border transition-colors',
+            isLocationSortEnabled
+              ? 'border-[#444] bg-[#444]'
+              : 'border-[#E2E2E2] bg-white',
+            isLocationLoading && 'opacity-50 cursor-not-allowed'
+          )}
+          aria-label={isLocationSortEnabled ? '위치 기반 정렬 해제' : '내 위치 기반으로 정렬'}
+          aria-pressed={isLocationSortEnabled}
         >
-          <MapPin className="h-5 w-5 text-[#444]" strokeWidth={1.5} />
+          {isLocationLoading ? (
+            <Loader2 className="h-5 w-5 text-[#444] animate-spin" strokeWidth={1.5} />
+          ) : (
+            <MapPin
+              className={cn(
+                'h-5 w-5',
+                isLocationSortEnabled ? 'text-white' : 'text-[#444]'
+              )}
+              strokeWidth={1.5}
+            />
+          )}
         </button>
       </div>
 
